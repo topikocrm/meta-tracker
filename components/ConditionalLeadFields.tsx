@@ -62,7 +62,7 @@ export default function ConditionalLeadFields({
     
     // Set default next actions and stage based on status
     let defaultNextAction: NextAction | undefined
-    let newStage: string | undefined
+    let newStage: LeadStage | undefined
     
     if (status === 'answered') {
       newStage = 'contacted'
@@ -101,7 +101,7 @@ export default function ConditionalLeadFields({
     setIsUpdating(true)
     
     // Set stage based on interest but don't force a specific action
-    let newStage: string | undefined
+    let newStage: LeadStage | undefined
     
     if (level === 'high' || level === 'medium') {
       newStage = 'qualified' // They're interested, now user chooses the path
