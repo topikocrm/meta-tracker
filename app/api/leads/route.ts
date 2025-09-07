@@ -4,7 +4,10 @@ import { createServerSupabase } from '@/lib/supabase'
 // GET - Fetch leads with CRM data
 export async function GET(request: NextRequest) {
   try {
+    // Create Supabase client with hardcoded values
     const supabase = createServerSupabase()
+    
+    // Parse query parameters
     const { searchParams } = new URL(request.url)
     
     const status = searchParams.get('status')
@@ -36,16 +39,21 @@ export async function GET(request: NextRequest) {
     
     // Parse tool_requirement JSON for each lead safely
     const processedLeads = leads?.map(lead => {
-      try {
-        return {
-          ...lead,
-          additional_data: lead.tool_requirement ? JSON.parse(lead.tool_requirement) : {}
+      let additionalData = {}
+      
+      // Safely parse tool_requirement if it exists and is a string
+      if (lead.tool_requirement && typeof lead.tool_requirement === 'string') {
+        try {
+          additionalData = JSON.parse(lead.tool_requirement)
+        } catch (e) {
+          // Invalid JSON, ignore
+          console.warn('Invalid JSON in tool_requirement for lead:', lead.id)
         }
-      } catch (e) {
-        return {
-          ...lead,
-          additional_data: {}
-        }
+      }
+      
+      return {
+        ...lead,
+        additional_data: additionalData
       }
     }) || []
     
@@ -59,10 +67,20 @@ export async function GET(request: NextRequest) {
     
   } catch (error) {
     console.error('Failed to fetch leads:', error)
+    
+    // Provide detailed error information
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorDetails = {
+      message: errorMessage,
+      type: (error as any)?.constructor?.name || 'UnknownError',
+      stack: process.env.NODE_ENV === 'development' ? (error as any)?.stack : undefined
+    }
+    
     return NextResponse.json(
       { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Failed to fetch leads' 
+        error: errorMessage,
+        details: errorDetails
       },
       { status: 500 }
     )
