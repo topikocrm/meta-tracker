@@ -7,27 +7,47 @@ import { Users, ShoppingBag, TrendingUp, Clock, CheckCircle, XCircle, AlertCircl
 interface DashboardStats {
   food: {
     total: number
+    // Pipeline stages
     new: number
     contacted: number
-    interested: number
+    qualified: number
+    demo: number
+    trial: number
     won: number
     lost: number
+    // Lead quality
+    hot: number
+    warm: number
+    cool: number
+    cold: number
+    // Legacy field for compatibility
+    interested?: number
   }
   boutique: {
     total: number
+    // Pipeline stages
     new: number
     contacted: number
-    interested: number
+    qualified: number
+    demo: number
+    trial: number
     won: number
     lost: number
+    // Lead quality
+    hot: number
+    warm: number
+    cool: number
+    cold: number
+    // Legacy field for compatibility
+    interested?: number
   }
 }
 
 export default function LeadsDashboardPage() {
   const router = useRouter()
   const [stats, setStats] = useState<DashboardStats>({
-    food: { total: 0, new: 0, contacted: 0, interested: 0, won: 0, lost: 0 },
-    boutique: { total: 0, new: 0, contacted: 0, interested: 0, won: 0, lost: 0 }
+    food: { total: 0, new: 0, contacted: 0, qualified: 0, demo: 0, trial: 0, won: 0, lost: 0, hot: 0, warm: 0, cool: 0, cold: 0 },
+    boutique: { total: 0, new: 0, contacted: 0, qualified: 0, demo: 0, trial: 0, won: 0, lost: 0, hot: 0, warm: 0, cool: 0, cold: 0 }
   })
   const [isLoading, setIsLoading] = useState(true)
   const [newLeadsCount, setNewLeadsCount] = useState({ food: 0, boutique: 0 })
@@ -97,11 +117,19 @@ export default function LeadsDashboardPage() {
     const managedLeads = leads.filter(l => l.is_managed !== false)
     return {
       total: managedLeads.length,
-      new: managedLeads.filter(l => !l.current_status || l.current_status === 'new').length,
-      contacted: managedLeads.filter(l => l.current_status === 'contacted').length,
-      interested: managedLeads.filter(l => l.current_status === 'interested').length,
-      won: managedLeads.filter(l => l.current_status === 'won').length,
-      lost: managedLeads.filter(l => l.current_status === 'lost').length
+      // Pipeline stages
+      new: managedLeads.filter(l => !l.lead_stage || l.lead_stage === 'new').length,
+      contacted: managedLeads.filter(l => l.lead_stage === 'contacted').length,
+      qualified: managedLeads.filter(l => l.lead_stage === 'qualified').length,
+      demo: managedLeads.filter(l => l.lead_stage === 'demo_scheduled' || l.lead_stage === 'demo_completed').length,
+      trial: managedLeads.filter(l => l.lead_stage === 'trial_started').length,
+      won: managedLeads.filter(l => l.lead_stage === 'won').length,
+      lost: managedLeads.filter(l => l.lead_stage === 'lost').length,
+      // Lead quality
+      hot: managedLeads.filter(l => l.lead_quality === 'hot').length,
+      warm: managedLeads.filter(l => l.lead_quality === 'warm').length,
+      cool: managedLeads.filter(l => l.lead_quality === 'cool').length,
+      cold: managedLeads.filter(l => l.lead_quality === 'cold').length
     }
   }
 
@@ -111,9 +139,9 @@ export default function LeadsDashboardPage() {
   }
 
   const StatCard = ({ label, value, color }: { label: string; value: number; color: string }) => (
-    <div className="bg-white rounded-lg p-3 border border-gray-200">
-      <p className="text-xs text-gray-600">{label}</p>
-      <p className={`text-lg font-bold ${color}`}>{value}</p>
+    <div className="bg-gray-50 rounded-lg p-2 border border-gray-200">
+      <p className="text-xs text-gray-600 truncate">{label}</p>
+      <p className={`text-base font-bold ${color}`}>{value}</p>
     </div>
   )
 
@@ -199,13 +227,29 @@ export default function LeadsDashboardPage() {
                   )}
                 </div>
                 
-                <div className="grid grid-cols-3 gap-3">
-                  <StatCard label="New" value={stats.food.new} color="text-green-600" />
-                  <StatCard label="Contacted" value={stats.food.contacted} color="text-blue-600" />
-                  <StatCard label="Interested" value={stats.food.interested} color="text-yellow-600" />
-                  <StatCard label="Won" value={stats.food.won} color="text-emerald-600" />
-                  <StatCard label="Lost" value={stats.food.lost} color="text-red-600" />
-                  <StatCard label="In Progress" value={stats.food.total - stats.food.won - stats.food.lost} color="text-purple-600" />
+                <div className="space-y-3">
+                  {/* Pipeline Stages */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Pipeline Stages</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      <StatCard label="🆕 New" value={stats.food.new} color="text-blue-600" />
+                      <StatCard label="📞 Contacted" value={stats.food.contacted} color="text-indigo-600" />
+                      <StatCard label="✅ Qualified" value={stats.food.qualified} color="text-purple-600" />
+                      <StatCard label="🎯 Demo" value={stats.food.demo} color="text-pink-600" />
+                      <StatCard label="🚀 Trial" value={stats.food.trial} color="text-orange-600" />
+                      <StatCard label="🏆 Won" value={stats.food.won} color="text-emerald-600" />
+                    </div>
+                  </div>
+                  {/* Lead Quality */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Lead Quality</p>
+                    <div className="grid grid-cols-4 gap-2">
+                      <StatCard label="🔥 Hot" value={stats.food.hot} color="text-red-600" />
+                      <StatCard label="☀️ Warm" value={stats.food.warm} color="text-orange-500" />
+                      <StatCard label="❄️ Cool" value={stats.food.cool} color="text-blue-500" />
+                      <StatCard label="🧊 Cold" value={stats.food.cold} color="text-gray-500" />
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="mt-4 pt-4 border-t border-gray-200">
@@ -255,13 +299,29 @@ export default function LeadsDashboardPage() {
                   )}
                 </div>
                 
-                <div className="grid grid-cols-3 gap-3">
-                  <StatCard label="New" value={stats.boutique.new} color="text-green-600" />
-                  <StatCard label="Contacted" value={stats.boutique.contacted} color="text-blue-600" />
-                  <StatCard label="Interested" value={stats.boutique.interested} color="text-yellow-600" />
-                  <StatCard label="Won" value={stats.boutique.won} color="text-emerald-600" />
-                  <StatCard label="Lost" value={stats.boutique.lost} color="text-red-600" />
-                  <StatCard label="In Progress" value={stats.boutique.total - stats.boutique.won - stats.boutique.lost} color="text-purple-600" />
+                <div className="space-y-3">
+                  {/* Pipeline Stages */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Pipeline Stages</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      <StatCard label="🆕 New" value={stats.boutique.new} color="text-blue-600" />
+                      <StatCard label="📞 Contacted" value={stats.boutique.contacted} color="text-indigo-600" />
+                      <StatCard label="✅ Qualified" value={stats.boutique.qualified} color="text-purple-600" />
+                      <StatCard label="🎯 Demo" value={stats.boutique.demo} color="text-pink-600" />
+                      <StatCard label="🚀 Trial" value={stats.boutique.trial} color="text-orange-600" />
+                      <StatCard label="🏆 Won" value={stats.boutique.won} color="text-emerald-600" />
+                    </div>
+                  </div>
+                  {/* Lead Quality */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Lead Quality</p>
+                    <div className="grid grid-cols-4 gap-2">
+                      <StatCard label="🔥 Hot" value={stats.boutique.hot} color="text-red-600" />
+                      <StatCard label="☀️ Warm" value={stats.boutique.warm} color="text-orange-500" />
+                      <StatCard label="❄️ Cool" value={stats.boutique.cool} color="text-blue-500" />
+                      <StatCard label="🧊 Cold" value={stats.boutique.cold} color="text-gray-500" />
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="mt-4 pt-4 border-t border-gray-200">
