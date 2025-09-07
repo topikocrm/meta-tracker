@@ -50,11 +50,20 @@ export default function BoutiqueLeadsPage() {
   const fetchLeads = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/leads?source=sheet_2_boutique&limit=1000')
-      const data = await response.json()
+      // Try simple endpoint first
+      let response = await fetch('/api/leads/simple?source=sheet_2_boutique&limit=1000')
+      let data = await response.json()
+      
+      // Fallback to regular endpoint if simple fails
+      if (!data.success) {
+        response = await fetch('/api/leads?source=sheet_2_boutique&limit=1000')
+        data = await response.json()
+      }
       
       if (data.success) {
-        setManagedLeads(data.leads || [])
+        // Filter for managed leads only
+        const managed = (data.leads || []).filter((l: any) => l.is_managed !== false)
+        setManagedLeads(managed)
       }
     } catch (error) {
       console.error('Failed to fetch leads:', error)
