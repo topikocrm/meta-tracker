@@ -39,7 +39,7 @@ export default function BoutiqueLeadsPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [assigneeFilter, setAssigneeFilter] = useState('all')
   const [users, setUsers] = useState<any[]>([])
-  const [sortField, setSortField] = useState<'created_time' | 'full_name' | 'current_status' | 'assigned_to'>('created_time')
+  const [sortField, setSortField] = useState<'created_time' | 'full_name' | 'current_status' | 'assigned_to' | 'lead_quality' | 'lead_stage'>('created_time')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
 
   useEffect(() => {
