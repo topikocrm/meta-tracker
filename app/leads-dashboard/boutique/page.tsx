@@ -44,8 +44,7 @@ export default function BoutiqueLeadsPage() {
   useEffect(() => {
     fetchLeads()
     fetchUsers()
-    // Disabled checkNewLeads since all leads are already imported
-    // checkNewLeads()
+    checkNewLeads()
   }, [])
 
   const fetchLeads = async () => {
@@ -85,24 +84,19 @@ export default function BoutiqueLeadsPage() {
   }
 
   const checkNewLeads = async () => {
-    // Disabled - all leads are already imported to database
-    setNewLeads([])
-    return
-    
-    // Original code kept for reference
-    // try {
-    //   const response = await fetch('/api/leads/check-new')
-    //   const data = await response.json()
-    //   
-    //   if (data.success) {
-    //     const boutiqueSheet = data.sheets?.find((s: any) => s.source === 'sheet_2_boutique')
-    //     if (boutiqueSheet) {
-    //       setNewLeads(boutiqueSheet.leads || [])
-    //     }
-    //   }
-    // } catch (error) {
-    //   console.error('Failed to check new leads:', error)
-    // }
+    try {
+      const response = await fetch('/api/leads/check-new')
+      const data = await response.json()
+      
+      if (data.success) {
+        const boutiqueSheet = data.sheets?.find((s: any) => s.source === 'sheet_2_boutique')
+        if (boutiqueSheet) {
+          setNewLeads(boutiqueSheet.leads || [])
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check new leads:', error)
+    }
   }
 
   const handleQuickImport = async (lead: any) => {
