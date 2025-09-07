@@ -34,6 +34,17 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createServerSupabase()
     
+    // First, get count of existing leads in database
+    const { count: existingFoodCount } = await supabase
+      .from('leads')
+      .select('*', { count: 'exact', head: true })
+      .eq('sheet_source', 'sheet_1_food')
+    
+    const { count: existingBoutiqueCount } = await supabase
+      .from('leads')
+      .select('*', { count: 'exact', head: true })
+      .eq('sheet_source', 'sheet_2_boutique')
+    
     // Google Sheets configuration
     const sheets = [
       { 

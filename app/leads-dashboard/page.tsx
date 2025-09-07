@@ -84,13 +84,15 @@ export default function LeadsDashboardPage() {
   }
 
   const calculateStats = (leads: any[]) => {
+    // All leads with is_managed=true are considered managed, regardless of status
+    const managedLeads = leads.filter(l => l.is_managed !== false)
     return {
-      total: leads.length,
-      new: leads.filter(l => l.current_status === 'new').length,
-      contacted: leads.filter(l => l.current_status === 'contacted').length,
-      interested: leads.filter(l => l.current_status === 'interested').length,
-      won: leads.filter(l => l.current_status === 'won').length,
-      lost: leads.filter(l => l.current_status === 'lost').length
+      total: managedLeads.length,
+      new: managedLeads.filter(l => !l.current_status || l.current_status === 'new').length,
+      contacted: managedLeads.filter(l => l.current_status === 'contacted').length,
+      interested: managedLeads.filter(l => l.current_status === 'interested').length,
+      won: managedLeads.filter(l => l.current_status === 'won').length,
+      lost: managedLeads.filter(l => l.current_status === 'lost').length
     }
   }
 
