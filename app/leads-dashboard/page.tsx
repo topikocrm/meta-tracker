@@ -48,14 +48,26 @@ export default function LeadsDashboardPage() {
       if (data.success) {
         const leads = data.leads || []
         
+        console.log('Fetched leads:', leads.length)
+        
         // Calculate stats for each source
         const foodLeads = leads.filter((l: any) => l.sheet_source === 'sheet_1_food')
         const boutiqueLeads = leads.filter((l: any) => l.sheet_source === 'sheet_2_boutique')
         
+        console.log('Food leads:', foodLeads.length, 'Boutique leads:', boutiqueLeads.length)
+        
+        const foodStats = calculateStats(foodLeads)
+        const boutiqueStats = calculateStats(boutiqueLeads)
+        
+        console.log('Food stats:', foodStats)
+        console.log('Boutique stats:', boutiqueStats)
+        
         setStats({
-          food: calculateStats(foodLeads),
-          boutique: calculateStats(boutiqueLeads)
+          food: foodStats,
+          boutique: boutiqueStats
         })
+      } else {
+        console.error('API failed:', data.error)
       }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error)

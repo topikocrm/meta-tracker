@@ -17,8 +17,7 @@ export async function GET(request: NextRequest) {
       .from('leads')
       .select(`
         *,
-        assigned_user:users!assigned_to(id, name, email),
-        lost_reason:lost_reasons(reason, category)
+        assigned_user:users!assigned_to(id, name, email)
       `)
       .order('created_time', { ascending: false })
       .range(offset, offset + limit - 1)
