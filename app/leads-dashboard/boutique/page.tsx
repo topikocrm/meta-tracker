@@ -19,6 +19,11 @@ interface Lead {
   created_time: string
   sheet_source: string
   is_managed: boolean
+  lead_quality?: 'hot' | 'warm' | 'cool' | 'cold'
+  lead_stage?: 'new' | 'contacted' | 'qualified' | 'demo_scheduled' | 'demo_completed' | 'trial_started' | 'won' | 'lost' | 'on_hold' | 'nurturing'
+  contact_status?: string
+  interest_level?: string
+  pipeline_progress?: number
   assigned_user?: {
     name: string
     email: string
