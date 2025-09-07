@@ -6,7 +6,7 @@ import { ArrowLeft, RefreshCw, Phone, MessageSquare, Search, Filter, Download, U
 import LeadQualityBadge from '@/components/LeadQualityBadge'
 import PipelineStageTracker from '@/components/PipelineStageTracker'
 import EnhancedLeadModal from '@/components/EnhancedLeadModal'
-import LeadDashboardStats from '@/components/LeadDashboardStats-new'
+import LeadDashboardStats from '@/components/LeadDashboardStats-table'
 
 interface Lead {
   id: string
