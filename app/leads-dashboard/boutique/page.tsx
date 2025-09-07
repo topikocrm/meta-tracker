@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, RefreshCw, Phone, MessageSquare, Search, Filter, Download, UserPlus, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import StatusBadge from '@/components/StatusBadge'
-import LeadModal from '@/components/LeadModal'
+import EnhancedLeadModal from '@/components/EnhancedLeadModal'
 import LeadDashboardStats from '@/components/LeadDashboardStats'
 
 interface Lead {
@@ -459,9 +459,9 @@ export default function BoutiqueLeadsPage() {
         </div>
       </div>
 
-      {/* Lead Modal */}
+      {/* Enhanced Lead Modal with Full CRM Features */}
       {showModal && selectedLead && (
-        <LeadModal
+        <EnhancedLeadModal
           lead={selectedLead}
           isOpen={showModal}
           onClose={() => {
