@@ -17,9 +17,6 @@ const PIPELINE_STAGES: LeadStage[] = [
   'demo_scheduled',
   'demo_completed',
   'trial_started',
-  'proposal_sent',
-  'negotiation',
-  'contract_sent',
   'won'
 ]
 

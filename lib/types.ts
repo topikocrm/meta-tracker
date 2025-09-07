@@ -149,7 +149,7 @@ export const STAGE_CONFIGS: Record<LeadStage, StageConfig> = {
     icon: '📞',
     label: 'Contacted',
     color: 'blue',
-    progress: 15,
+    progress: 20,
     nextAction: 'Assess interest level',
     successCriteria: 'Interest level determined',
     description: 'Initial contact made'
@@ -158,7 +158,7 @@ export const STAGE_CONFIGS: Record<LeadStage, StageConfig> = {
     icon: '✅',
     label: 'Qualified',
     color: 'green',
-    progress: 30,
+    progress: 40,
     nextAction: 'Schedule demo/meeting',
     successCriteria: 'Demo scheduled',
     description: 'Lead qualified and interested'
@@ -167,29 +167,30 @@ export const STAGE_CONFIGS: Record<LeadStage, StageConfig> = {
     icon: '📅',
     label: 'Demo Scheduled',
     color: 'purple',
-    progress: 40,
+    progress: 55,
     nextAction: 'Prepare and conduct demo',
     successCriteria: 'Demo conducted',
-    description: 'Demo appointment set'
+    description: 'Demo appointment set - Click "Schedule Demo" in Next Action to reach here'
   },
   demo_completed: {
     icon: '🖥️',
     label: 'Demo Done',
     color: 'indigo',
-    progress: 50,
-    nextAction: 'Get feedback and next steps',
-    successCriteria: 'Positive feedback received',
-    description: 'Demo completed successfully'
+    progress: 70,
+    nextAction: 'Get feedback and start trial',
+    successCriteria: 'Trial started or deal closed',
+    description: 'Demo completed - Mark demo as done to advance'
   },
   trial_started: {
     icon: '🧪',
     label: 'Trial',
     color: 'orange',
-    progress: 60,
-    nextAction: 'Support trial, ensure success',
-    successCriteria: 'Trial successful',
-    description: 'Trial or POC in progress'
+    progress: 85,
+    nextAction: 'Support trial, close deal',
+    successCriteria: 'Deal closed',
+    description: 'Trial in progress - Click "Create Trial" in Next Action to reach here'
   },
+  // Hidden stages - kept for backward compatibility but not shown in UI
   proposal_sent: {
     icon: '📄',
     label: 'Proposal',
@@ -224,7 +225,7 @@ export const STAGE_CONFIGS: Record<LeadStage, StageConfig> = {
     progress: 100,
     nextAction: 'Onboard customer',
     successCriteria: 'Customer active',
-    description: 'Deal closed successfully'
+    description: 'Deal closed - Click "Close Deal" in Next Action to win'
   },
   lost: {
     icon: '❌',

@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Phone, PhoneOff, AlertCircle, Calendar, MessageSquare, Target } from 'lucide-react'
-import { ContactStatus, InterestLevel, NextAction, FollowUpPriority, LOST_REASONS } from '@/lib/types'
+import { Phone, PhoneOff, AlertCircle, Calendar, MessageSquare, Target, CheckCircle } from 'lucide-react'
+import { ContactStatus, InterestLevel, NextAction, FollowUpPriority, LeadStage, LOST_REASONS } from '@/lib/types'
 
 interface ConditionalLeadFieldsProps {
   leadId: string
@@ -14,6 +14,7 @@ interface ConditionalLeadFieldsProps {
     nextAction?: NextAction
     followUpDate?: string
     followUpPriority?: FollowUpPriority
+    leadStage?: LeadStage
   }
   onUpdate: (data: any) => Promise<void>
   isMobile?: boolean
@@ -34,6 +35,7 @@ export default function ConditionalLeadFields({
   const [followUpPriority, setFollowUpPriority] = useState<FollowUpPriority>(initialData.followUpPriority || 'medium')
   const [customReason, setCustomReason] = useState('')
   const [isUpdating, setIsUpdating] = useState(false)
+  const [currentStage, setCurrentStage] = useState<LeadStage>(initialData.leadStage || 'new')
 
   // Handle contact status change
   const handleContactStatusChange = async (status: ContactStatus) => {
@@ -345,6 +347,36 @@ export default function ConditionalLeadFields({
     )
   }
 
+  // Handle next action change with pipeline progression
+  const handleNextActionChange = async (action: NextAction) => {
+    setNextAction(action)
+    setIsUpdating(true)
+    
+    // Determine if pipeline should advance based on action
+    let newStage: string | undefined
+    
+    if (action === 'schedule_demo') {
+      newStage = 'demo_scheduled'
+    } else if (action === 'send_information') {
+      // Stay in current stage but mark as info sent
+    } else if (action === 'create_trial') {
+      newStage = 'trial_started'
+    } else if (action === 'close_deal') {
+      newStage = 'won'
+    }
+    
+    const updateData: any = {
+      next_action: action
+    }
+    
+    if (newStage) {
+      updateData.lead_stage = newStage
+    }
+    
+    await onUpdate(updateData)
+    setIsUpdating(false)
+  }
+  
   // Next Action Selector (always visible)
   const NextActionSelector = () => (
     <div className="space-y-3">
@@ -353,13 +385,10 @@ export default function ConditionalLeadFields({
         Next Action
       </label>
       <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
-        {['call_back', 'send_information', 'schedule_demo', 'follow_up_later', 'no_action'].map((action) => (
+        {['call_back', 'send_information', 'schedule_demo', 'create_trial', 'close_deal', 'follow_up_later', 'no_action'].map((action) => (
           <button
             key={action}
-            onClick={() => {
-              setNextAction(action as NextAction)
-              onUpdate({ next_action: action })
-            }}
+            onClick={() => handleNextActionChange(action as NextAction)}
             className={`p-2 rounded-lg border transition-all text-xs font-medium ${
               nextAction === action 
                 ? 'border-blue-500 bg-blue-50 text-blue-700' 
@@ -373,6 +402,16 @@ export default function ConditionalLeadFields({
     </div>
   )
 
+  // Handle demo completion
+  const handleDemoCompleted = async () => {
+    setIsUpdating(true)
+    await onUpdate({
+      lead_stage: 'demo_completed'
+    })
+    setCurrentStage('demo_completed')
+    setIsUpdating(false)
+  }
+  
   return (
     <div className="space-y-6">
       <ContactStatusSelector />
@@ -382,6 +421,26 @@ export default function ConditionalLeadFields({
           <InterestLevelSelector />
           <ReasonSelector />
         </>
+      )}
+      
+      {/* Demo Completion Button - only show if in demo_scheduled stage */}
+      {currentStage === 'demo_scheduled' && (
+        <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-purple-900">Demo Scheduled</p>
+              <p className="text-xs text-purple-700">Mark as completed when demo is done</p>
+            </div>
+            <button
+              onClick={handleDemoCompleted}
+              disabled={isUpdating}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
+            >
+              <CheckCircle className="h-4 w-4" />
+              Demo Completed
+            </button>
+          </div>
+        </div>
       )}
       
       <FollowUpScheduler />

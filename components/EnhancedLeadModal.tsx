@@ -337,7 +337,8 @@ export default function EnhancedLeadModal({
                     notQualifiedReason: leadData.not_qualified_reason,
                     nextAction: leadData.next_action,
                     followUpDate: leadData.follow_up_date,
-                    followUpPriority: leadData.follow_up_priority
+                    followUpPriority: leadData.follow_up_priority,
+                    leadStage: leadData.lead_stage
                   }}
                   onUpdate={handleFieldUpdate}
                   isMobile={isMobile}
