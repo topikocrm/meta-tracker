@@ -127,6 +127,33 @@ export default function BoutiqueLeadsPage() {
     }
   }
 
+  const handleBulkImport = async () => {
+    if (newLeads.length === 0) return
+    
+    try {
+      const response = await fetch('/api/leads/bulk-import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          leads: newLeads,
+          assignToRandom: true,
+          markAsManaged: true
+        })
+      })
+      
+      const data = await response.json()
+      if (data.success) {
+        // Clear new leads and refresh managed leads
+        setNewLeads([])
+        fetchLeads()
+      } else {
+        console.error('Bulk import failed:', data.error)
+      }
+    } catch (error) {
+      console.error('Failed to bulk import leads:', error)
+    }
+  }
+
   const filteredLeads = managedLeads.filter(lead => {
     const matchesSearch = !searchQuery || 
       lead.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -223,10 +250,18 @@ export default function BoutiqueLeadsPage() {
             <div className="flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
               <div className="flex-1">
-                <h3 className="font-medium text-yellow-900">
-                  {newLeads.length} New {newLeads.length === 1 ? 'Lead' : 'Leads'} Available
-                </h3>
-                <div className="mt-3 space-y-2">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium text-yellow-900">
+                    {newLeads.length} New {newLeads.length === 1 ? 'Lead' : 'Leads'} Available
+                  </h3>
+                  <button
+                    onClick={handleBulkImport}
+                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 text-sm font-medium"
+                  >
+                    Import All {newLeads.length} Leads
+                  </button>
+                </div>
+                <div className="space-y-2">
                   {newLeads.slice(0, 3).map((lead, idx) => (
                     <div key={idx} className="flex items-center justify-between bg-white rounded-lg p-3 border border-yellow-200">
                       <div className="flex items-center gap-4">

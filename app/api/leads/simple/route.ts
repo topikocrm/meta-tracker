@@ -12,7 +12,10 @@ export async function GET(request: NextRequest) {
     
     let query = supabase
       .from('leads')
-      .select('*')
+      .select(`
+        *,
+        assigned_user:users!assigned_to(id, name, email)
+      `)
       .order('created_time', { ascending: false })
       .limit(limit)
     
