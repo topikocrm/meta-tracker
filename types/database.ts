@@ -1,6 +1,8 @@
 export type UserRole = 'admin' | 'manager' | 'user'
 export type LeadStatus = 'new' | 'contacted' | 'interested' | 'demo' | 'negotiation' | 'won' | 'lost'
 export type InteractionType = 'call' | 'email' | 'whatsapp' | 'meeting' | 'other'
+export type LeadQuality = 'hot' | 'warm' | 'cool' | 'cold'
+export type LeadStage = 'new' | 'contacted' | 'qualified' | 'demo_scheduled' | 'demo_completed' | 'trial_started' | 'won' | 'lost' | 'on_hold' | 'nurturing'
 
 export interface User {
   id: string
@@ -38,8 +40,24 @@ export interface Lead {
   assigned_to?: string
   assigned_user?: User
   current_status: LeadStatus
+  lead_quality?: LeadQuality
+  lead_stage?: LeadStage
+  contact_status?: string
+  interest_level?: string
   lost_reason_id?: string
   lost_reason?: LostReason
+  lost_reason_text?: string
+  not_qualified_reason?: string
+  next_action?: string
+  follow_up_date?: string
+  follow_up_priority?: string
+  last_contact_date?: string
+  contact_attempts?: number
+  stage_entered_date?: string
+  days_in_stage?: number
+  pipeline_progress?: number
+  is_managed?: boolean
+  row_number?: number
   conversion_value?: number
   sheet_source?: string
   created_at: string
