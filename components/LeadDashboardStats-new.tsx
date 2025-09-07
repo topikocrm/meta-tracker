@@ -75,45 +75,41 @@ export default function LeadDashboardStats({
             className="bg-blue-50 rounded-lg p-4 cursor-pointer hover:bg-blue-100 transition-colors border-2 border-blue-200"
             onClick={() => handleAgentClick('all')}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-blue-600" />
                 <span className="text-sm font-medium text-blue-700">
                   All Agents
                 </span>
               </div>
-              <span className="text-lg font-bold text-blue-900">
-                {leads.length}
-              </span>
-            </div>
-            <div className="mt-2">
-              <div className="text-xs text-blue-600 mb-1">
-                {leads.length === 1 ? 'lead total' : 'leads total'}
+              <div className="text-right">
+                <span className="text-xl font-bold text-blue-900">{leads.length}</span>
+                <p className="text-xs text-blue-600">total</p>
               </div>
-              <div className="grid grid-cols-3 gap-1 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">New:</span>
-                  <span className="font-semibold">{leads.filter(l => !l.lead_stage || l.lead_stage === 'new').length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Active:</span>
-                  <span className="font-semibold">{leads.filter(l => l.lead_stage && !['new', 'won', 'lost'].includes(l.lead_stage)).length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Won:</span>
-                  <span className="font-semibold text-green-600">{leads.filter(l => l.lead_stage === 'won').length}</span>
-                </div>
+            </div>
+            <div className="space-y-1 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-blue-700">Contacted</span>
+                <span className="font-semibold text-blue-800">{leads.filter(l => l.lead_stage === 'contacted').length}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-blue-700">Qualified</span>
+                <span className="font-semibold text-purple-700">{leads.filter(l => l.lead_stage === 'qualified').length}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-blue-700">Lost</span>
+                <span className="font-semibold text-red-700">{leads.filter(l => l.lead_stage === 'lost').length}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-blue-700">Won</span>
+                <span className="font-semibold text-green-700">{leads.filter(l => l.lead_stage === 'won').length}</span>
               </div>
             </div>
           </div>
           {leadsPerAgent.map((agent) => {
-            const newCount = agent.stages['new'] || 0
-            const activeCount = Object.entries(agent.stages).reduce((sum, [stage, count]) => {
-              if (stage !== 'new' && stage !== 'won' && stage !== 'lost') {
-                return sum + count
-              }
-              return sum
-            }, 0)
+            const contactedCount = agent.stages['contacted'] || 0
+            const qualifiedCount = agent.stages['qualified'] || 0
+            const lostCount = agent.stages['lost'] || 0
             const wonCount = agent.stages['won'] || 0
             
             return (
@@ -122,34 +118,34 @@ export default function LeadDashboardStats({
                 className="bg-gray-50 rounded-lg p-4 cursor-pointer hover:bg-gray-100 transition-colors"
                 onClick={() => handleAgentClick(agent.userId)}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-gray-500" />
                     <span className="text-sm font-medium text-gray-700 truncate">
                       {agent.userName}
                     </span>
                   </div>
-                  <span className="text-lg font-bold text-gray-900">
-                    {agent.count}
-                  </span>
-                </div>
-                <div className="mt-2">
-                  <div className="text-xs text-gray-500 mb-1">
-                    {agent.count === 1 ? 'lead' : 'leads'}
+                  <div className="text-right">
+                    <span className="text-xl font-bold text-gray-900">{agent.count}</span>
+                    <p className="text-xs text-gray-500">total</p>
                   </div>
-                  <div className="grid grid-cols-3 gap-1 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">New:</span>
-                      <span className="font-semibold">{newCount}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Active:</span>
-                      <span className="font-semibold text-blue-600">{activeCount}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Won:</span>
-                      <span className="font-semibold text-green-600">{wonCount}</span>
-                    </div>
+                </div>
+                <div className="space-y-1 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Contacted</span>
+                    <span className="font-semibold text-blue-600">{contactedCount}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Qualified</span>
+                    <span className="font-semibold text-purple-600">{qualifiedCount}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Lost</span>
+                    <span className="font-semibold text-red-600">{lostCount}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Won</span>
+                    <span className="font-semibold text-green-600">{wonCount}</span>
                   </div>
                 </div>
               </div>
