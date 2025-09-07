@@ -61,24 +61,24 @@ export default function PipelineStageTracker({
             const isFuture = index > currentIndex
             
             return (
-              <button
+              <div
                 key={stage}
-                onClick={() => onStageClick?.(stage)}
                 className={`
                   flex-shrink-0 px-3 py-2 rounded-lg text-xs font-medium
                   transition-all duration-200
                   ${isCurrent ? 'bg-blue-500 text-white scale-105' : ''}
                   ${isPast ? 'bg-green-100 text-green-700' : ''}
                   ${isFuture ? 'bg-gray-100 text-gray-400' : ''}
-                  ${onStageClick ? 'cursor-pointer hover:shadow-md' : 'cursor-default'}
+                  cursor-default
                 `}
+                title={onStageClick ? '' : 'Stages advance automatically based on Track tab selections'}
               >
                 <div className="flex items-center gap-1">
                   {isPast && <Check className="h-3 w-3" />}
                   <span>{config.icon}</span>
                   <span className="whitespace-nowrap">{config.label}</span>
                 </div>
-              </button>
+              </div>
             )
           })}
         </div>
@@ -112,6 +112,14 @@ export default function PipelineStageTracker({
   // Full variant - desktop
   return (
     <div className="w-full">
+      {!onStageClick && (
+        <div className="mb-3 text-xs text-gray-500 italic flex items-center gap-1">
+          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Pipeline advances automatically based on your selections in the Track tab
+        </div>
+      )}
       {showProgress && (
         <div className="mb-4">
           <div className="flex justify-between text-sm text-gray-600 mb-2">
@@ -136,15 +144,14 @@ export default function PipelineStageTracker({
           
           return (
             <div key={stage} className="flex items-center flex-1">
-              <button
-                onClick={() => onStageClick?.(stage)}
+              <div
                 className={`
                   flex flex-col items-center gap-1 p-2 rounded-lg transition-all duration-200
                   ${isCurrent ? 'scale-110 bg-white shadow-lg' : ''}
-                  ${onStageClick ? 'cursor-pointer hover:bg-gray-50' : 'cursor-default'}
+                  cursor-default
                   ${isFuture ? 'opacity-50' : ''}
                 `}
-                title={config.description}
+                title={onStageClick ? config.description : `${config.description}\n\nStages advance automatically based on selections in the Track tab`}
               >
                 <div className={`
                   w-10 h-10 rounded-full flex items-center justify-center text-white text-sm
@@ -160,7 +167,7 @@ export default function PipelineStageTracker({
                 `}>
                   {config.label}
                 </span>
-              </button>
+              </div>
               
               {index < PIPELINE_STAGES.length - 1 && (
                 <ChevronRight className={`
@@ -183,23 +190,23 @@ export default function PipelineStageTracker({
             const isFuture = index > currentIndex
             
             return (
-              <button
+              <div
                 key={stage}
-                onClick={() => onStageClick?.(stage)}
                 className={`
                   flex-shrink-0 px-4 py-2 rounded-lg font-medium
                   transition-all duration-200
                   ${isCurrent ? 'bg-blue-500 text-white' : ''}
                   ${isPast ? 'bg-green-100 text-green-700' : ''}
                   ${isFuture ? 'bg-gray-100 text-gray-400' : ''}
-                  ${onStageClick ? 'cursor-pointer' : 'cursor-default'}
+                  cursor-default
                 `}
+                title={onStageClick ? '' : 'Stages advance automatically based on Track tab selections'}
               >
                 <div className="flex items-center gap-2">
                   <span>{config.icon}</span>
                   <span className="text-sm">{config.label}</span>
                 </div>
-              </button>
+              </div>
             )
           })}
         </div>

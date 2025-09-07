@@ -194,7 +194,7 @@ export default function EnhancedLeadModal({
           <div className="px-4 sm:px-6 py-3 bg-gray-50 border-b border-gray-200">
             <PipelineStageTracker 
               currentStage={leadData.lead_stage}
-              onStageClick={handleStageChange}
+              // Removed onStageClick to prevent manual stage changes - stages now only advance through Track tab
               variant={isMobile ? 'mobile' : 'full'}
               showProgress={true}
             />
