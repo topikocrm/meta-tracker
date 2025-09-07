@@ -133,8 +133,8 @@ export default function EnhancedLeadModal({
     : ['overview', 'tracking', 'crm', 'activity', 'details']
   
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className={`bg-white rounded-xl shadow-2xl w-full max-h-[95vh] overflow-hidden flex flex-col ${
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4 overflow-hidden">
+      <div className={`bg-white rounded-xl shadow-2xl w-full max-h-[90vh] overflow-hidden flex flex-col ${
         isMobile ? 'max-w-full' : 'max-w-5xl'
       }`}>
         {/* Header */}
@@ -424,9 +424,9 @@ export default function EnhancedLeadModal({
           )}
           
           {activeTab === 'details' && !isMobile && (
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-full">
               <h3 className="font-medium text-gray-900">All Information</h3>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 rounded-lg p-4 max-h-[calc(100vh-400px)] overflow-y-auto">
                 <dl className="space-y-3">
                   {Object.entries({ ...leadData, ...additionalData }).map(([key, value]) => {
                     if (['id', '_isNew', 'tool_requirement', 'additional_data', 'assigned_user'].includes(key)) return null
@@ -438,8 +438,8 @@ export default function EnhancedLeadModal({
                     
                     return (
                       <div key={key} className="grid grid-cols-3 gap-2">
-                        <dt className="text-sm font-medium text-gray-500">{displayKey}</dt>
-                        <dd className="text-sm text-gray-900 col-span-2">{String(value)}</dd>
+                        <dt className="text-sm font-medium text-gray-500 break-words">{displayKey}</dt>
+                        <dd className="text-sm text-gray-900 col-span-2 break-words">{String(value)}</dd>
                       </div>
                     )
                   })}
