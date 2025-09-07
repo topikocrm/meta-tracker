@@ -15,10 +15,7 @@ export async function GET(request: NextRequest) {
     
     let query = supabase
       .from('leads')
-      .select(`
-        *,
-        assigned_user:users!assigned_to(id, name, email)
-      `)
+      .select('*')
       .order('created_time', { ascending: false })
       .range(offset, offset + limit - 1)
     
@@ -37,11 +34,20 @@ export async function GET(request: NextRequest) {
     
     if (error) throw error
     
-    // Parse tool_requirement JSON for each lead
-    const processedLeads = leads?.map(lead => ({
-      ...lead,
-      additional_data: lead.tool_requirement ? JSON.parse(lead.tool_requirement) : {}
-    })) || []
+    // Parse tool_requirement JSON for each lead safely
+    const processedLeads = leads?.map(lead => {
+      try {
+        return {
+          ...lead,
+          additional_data: lead.tool_requirement ? JSON.parse(lead.tool_requirement) : {}
+        }
+      } catch (e) {
+        return {
+          ...lead,
+          additional_data: {}
+        }
+      }
+    }) || []
     
     return NextResponse.json({
       success: true,
