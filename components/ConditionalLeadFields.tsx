@@ -68,6 +68,7 @@ export default function ConditionalLeadFields({
       newStage = 'contacted'
     } else if (status === 'not_answered' || status === 'busy_call_later') {
       defaultNextAction = 'call_back'
+      newStage = 'contacted' // Update stage to contacted for these statuses too
     } else if (status === 'invalid_number' || status === 'do_not_call') {
       defaultNextAction = 'archive'
       newStage = 'lost'
@@ -80,11 +81,13 @@ export default function ConditionalLeadFields({
     const updateData: any = {
       contact_status: status,
       next_action: defaultNextAction,
-      interest_level: status !== 'answered' ? null : interestLevel
+      interest_level: status !== 'answered' ? null : interestLevel,
+      last_contact_date: new Date().toISOString() // Track last contact date
     }
     
     if (newStage) {
       updateData.lead_stage = newStage
+      setCurrentStage(newStage) // Update local state
     }
     
     await onUpdate(updateData)
@@ -97,35 +100,25 @@ export default function ConditionalLeadFields({
     setInterestLevel(level)
     setIsUpdating(true)
     
-    // Set default next actions and stage based on interest
-    let defaultNextAction: NextAction | undefined
+    // Set stage based on interest but don't force a specific action
     let newStage: string | undefined
     
-    if (level === 'high') {
-      defaultNextAction = 'schedule_demo'
-      newStage = 'qualified'
-    } else if (level === 'medium') {
-      defaultNextAction = 'schedule_demo'
-      newStage = 'qualified'
+    if (level === 'high' || level === 'medium') {
+      newStage = 'qualified' // They're interested, now user chooses the path
     } else if (level === 'low') {
-      defaultNextAction = 'follow_up_later'
       newStage = 'nurturing'
     } else if (level === 'no_interest' || level === 'not_qualified') {
-      defaultNextAction = 'archive'
       newStage = 'lost'
-    }
-    
-    if (defaultNextAction) {
-      setNextAction(defaultNextAction)
     }
     
     const updateData: any = {
       interest_level: level,
-      next_action: defaultNextAction
+      last_contact_date: new Date().toISOString()
     }
     
     if (newStage) {
       updateData.lead_stage = newStage
+      setCurrentStage(newStage)
     }
     
     await onUpdate(updateData)
@@ -403,23 +396,24 @@ export default function ConditionalLeadFields({
     setIsUpdating(false)
   }
   
-  // Stage-aware Next Action Selector
+  // Flexible Next Action Selector - All options available after interest is determined
   const NextActionSelector = () => {
-    // Determine which actions to show based on current stage
+    // Determine which actions to show based on interest level and current stage
     let primaryActions: NextAction[] = []
     let secondaryActions: NextAction[] = ['call_back', 'follow_up_later', 'no_action']
     
-    if (currentStage === 'new' || currentStage === 'contacted') {
-      primaryActions = ['schedule_demo', 'send_information']
-    } else if (currentStage === 'qualified') {
-      primaryActions = ['schedule_demo', 'send_information']
-    } else if (currentStage === 'demo_scheduled') {
+    // If interest level is determined, show all primary actions
+    if (interestLevel && interestLevel !== 'no_interest' && interestLevel !== 'not_qualified') {
+      // All primary actions available - user can choose any path
+      primaryActions = ['schedule_demo', 'send_information', 'create_trial']
+      
+      // If in trial or later stages, also show close deal
+      if (currentStage === 'trial_started' || currentStage === 'demo_completed') {
+        primaryActions.push('close_deal')
+      }
+    } else if (currentStage === 'contacted' || currentStage === 'new') {
+      // Before interest is determined, only basic actions
       primaryActions = ['send_information']
-      // Demo Completed is handled separately as a special button
-    } else if (currentStage === 'demo_completed') {
-      primaryActions = ['create_trial', 'send_information']
-    } else if (currentStage === 'trial_started') {
-      primaryActions = ['close_deal', 'send_information']
     }
     
     return (

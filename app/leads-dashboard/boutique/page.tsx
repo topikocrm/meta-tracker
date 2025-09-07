@@ -6,7 +6,7 @@ import { ArrowLeft, RefreshCw, Phone, MessageSquare, Search, Filter, Download, U
 import LeadQualityBadge from '@/components/LeadQualityBadge'
 import PipelineStageTracker from '@/components/PipelineStageTracker'
 import EnhancedLeadModal from '@/components/EnhancedLeadModal'
-import LeadDashboardStats from '@/components/LeadDashboardStats'
+import LeadDashboardStats from '@/components/LeadDashboardStats-new'
 
 interface Lead {
   id: string
@@ -258,13 +258,11 @@ export default function BoutiqueLeadsPage() {
         {/* Dashboard Statistics */}
         <LeadDashboardStats 
           leads={managedLeads} 
-          users={users} 
-          onFilterChange={(type, value) => {
-            if (type === 'assignee') {
-              setAssigneeFilter(value)
-            } else if (type === 'status') {
-              setStatusFilter(value)
-            }
+          onAgentClick={(agentId) => {
+            setAssigneeFilter(agentId)
+          }}
+          onStatusClick={(status) => {
+            setStatusFilter(status)
           }}
         />
 

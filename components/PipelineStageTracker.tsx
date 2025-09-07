@@ -10,6 +10,27 @@ interface PipelineStageTrackerProps {
   showProgress?: boolean
 }
 
+// Flexible pipeline - shows relevant stages based on current path
+const getRelevantStages = (currentStage: LeadStage): LeadStage[] => {
+  // Always start with these
+  const baseStages: LeadStage[] = ['new', 'contacted', 'qualified']
+  
+  // Add stages based on what path the lead is taking
+  if (currentStage === 'demo_scheduled' || currentStage === 'demo_completed') {
+    baseStages.push('demo_scheduled', 'demo_completed')
+  }
+  
+  if (currentStage === 'trial_started') {
+    baseStages.push('trial_started')
+  }
+  
+  // Always end with won
+  baseStages.push('won')
+  
+  // Remove duplicates and return
+  return Array.from(new Set(baseStages))
+}
+
 const PIPELINE_STAGES: LeadStage[] = [
   'new',
   'contacted',

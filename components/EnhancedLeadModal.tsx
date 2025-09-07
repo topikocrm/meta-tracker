@@ -252,6 +252,21 @@ export default function EnhancedLeadModal({
                 </div>
               </div>
               
+              {/* Last Contact Info */}
+              {leadData.last_contact_date && (
+                <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-yellow-600" />
+                      <span className="text-sm font-medium text-yellow-800">Last Contacted:</span>
+                    </div>
+                    <span className="text-sm text-yellow-700">
+                      {new Date(leadData.last_contact_date).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
               {/* Contact Information */}
               <div className="bg-gray-50 rounded-lg p-4">
                 <h3 className="font-medium text-gray-900 mb-4">Contact Information</h3>
