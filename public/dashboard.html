@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen py-8">
+        <div class="max-w-7xl mx-auto px-4">
+            <!-- Header -->
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <h1 class="text-3xl font-bold text-gray-900">CRM Dashboard</h1>
+                <p class="text-gray-600 mt-1">Direct Database Connection</p>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading" class="text-center py-12">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p class="mt-4 text-gray-600">Loading lead counts...</p>
+            </div>
+
+            <!-- Dashboard Content (hidden initially) -->
+            <div id="dashboard" class="hidden">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Food Leads -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="bg-gradient-to-r from-orange-500 to-orange-600 p-6">
+                            <h2 class="text-2xl font-bold text-white">Food Leads</h2>
+                            <p class="text-orange-100">Restaurant & Food Business</p>
+                        </div>
+                        <div class="p-6">
+                            <p id="foodCount" class="text-5xl font-bold text-gray-900">0</p>
+                            <p class="text-gray-600 mt-2">Total Leads</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Boutique Leads -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-6">
+                            <h2 class="text-2xl font-bold text-white">Boutique Leads</h2>
+                            <p class="text-purple-100">Fashion & Boutique Business</p>
+                        </div>
+                        <div class="p-6">
+                            <p id="boutiqueCount" class="text-5xl font-bold text-gray-900">0</p>
+                            <p class="text-gray-600 mt-2">Total Leads</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Summary -->
+                <div class="mt-6 bg-white rounded-lg shadow-sm p-6">
+                    <div class="text-center">
+                        <p id="totalCount" class="text-6xl font-bold text-gray-900">0</p>
+                        <p class="text-xl text-gray-600 mt-2">Total Leads in Your CRM</p>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <a href="/leads-dashboard/food" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">
+                        <h4 class="font-medium text-gray-900">View Food Leads</h4>
+                        <p class="text-sm text-gray-600 mt-1">Manage food business leads</p>
+                    </a>
+                    <a href="/leads-dashboard/boutique" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">
+                        <h4 class="font-medium text-gray-900">View Boutique Leads</h4>
+                        <p class="text-sm text-gray-600 mt-1">Manage boutique leads</p>
+                    </a>
+                    <a href="/leads-dashboard" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">
+                        <h4 class="font-medium text-gray-900">Full Dashboard</h4>
+                        <p class="text-sm text-gray-600 mt-1">View detailed statistics</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Error State (hidden initially) -->
+            <div id="error" class="hidden">
+                <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+                    <h2 class="text-red-800 font-semibold mb-2">Error Loading Dashboard</h2>
+                    <p id="errorMessage" class="text-red-600"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Direct Supabase connection
+        const SUPABASE_URL = 'https://nnituwulsjzoucbeuele.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uaXR1d3Vsc2p6b3VjYmV1ZWxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxNTc1NTYsImV4cCI6MjA3MjczMzU1Nn0.J1_ey_2GMdryzoRdHcH6Z79WtJExb4h-9CKSiXKcJtE';
+
+        async function fetchCounts() {
+            try {
+                // Fetch food leads count
+                const foodResponse = await fetch(
+                    `${SUPABASE_URL}/rest/v1/leads?select=*&sheet_source=eq.sheet_1_food`,
+                    {
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Prefer': 'count=exact'
+                        }
+                    }
+                );
+                
+                const foodCount = foodResponse.headers.get('content-range')?.split('/')[1] || '0';
+                
+                // Fetch boutique leads count
+                const boutiqueResponse = await fetch(
+                    `${SUPABASE_URL}/rest/v1/leads?select=*&sheet_source=eq.sheet_2_boutique`,
+                    {
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Prefer': 'count=exact'
+                        }
+                    }
+                );
+                
+                const boutiqueCount = boutiqueResponse.headers.get('content-range')?.split('/')[1] || '0';
+                
+                // Update UI
+                document.getElementById('foodCount').textContent = foodCount;
+                document.getElementById('boutiqueCount').textContent = boutiqueCount;
+                document.getElementById('totalCount').textContent = parseInt(foodCount) + parseInt(boutiqueCount);
+                
+                // Show dashboard, hide loading
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Error fetching counts:', error);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error').classList.remove('hidden');
+                document.getElementById('errorMessage').textContent = error.message;
+            }
+        }
+
+        // Fetch counts on page load
+        fetchCounts();
+    </script>
+</body>
+</html>
