@@ -44,7 +44,8 @@ export default function FoodLeadsPage() {
   useEffect(() => {
     fetchLeads()
     fetchUsers()
-    checkNewLeads()
+    // Disabled checkNewLeads since all leads are already imported
+    // checkNewLeads()
   }, [])
 
   const fetchLeads = async () => {
@@ -84,19 +85,24 @@ export default function FoodLeadsPage() {
   }
 
   const checkNewLeads = async () => {
-    try {
-      const response = await fetch('/api/leads/check-new')
-      const data = await response.json()
-      
-      if (data.success) {
-        const foodSheet = data.sheets?.find((s: any) => s.source === 'sheet_1_food')
-        if (foodSheet) {
-          setNewLeads(foodSheet.leads || [])
-        }
-      }
-    } catch (error) {
-      console.error('Failed to check new leads:', error)
-    }
+    // Disabled - all leads are already imported to database
+    setNewLeads([])
+    return
+    
+    // Original code kept for reference
+    // try {
+    //   const response = await fetch('/api/leads/check-new')
+    //   const data = await response.json()
+    //   
+    //   if (data.success) {
+    //     const foodSheet = data.sheets?.find((s: any) => s.source === 'sheet_1_food')
+    //     if (foodSheet) {
+    //       setNewLeads(foodSheet.leads || [])
+    //     }
+    //   }
+    // } catch (error) {
+    //   console.error('Failed to check new leads:', error)
+    // }
   }
 
   const handleQuickImport = async (lead: any) => {

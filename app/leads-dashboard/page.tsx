@@ -35,7 +35,8 @@ export default function LeadsDashboardPage() {
 
   useEffect(() => {
     fetchDashboardData()
-    checkNewLeads()
+    // Disabled checkNewLeads since all leads are already imported
+    // checkNewLeads()
   }, [])
 
   const fetchDashboardData = async () => {
@@ -74,13 +75,18 @@ export default function LeadsDashboardPage() {
   }
 
   const checkNewLeads = async () => {
-    try {
-      const response = await fetch('/api/leads/check-new')
-      const data = await response.json()
-      
-      if (data.success) {
-        const foodSheet = data.sheets?.find((s: any) => s.source === 'sheet_1_food')
-        const boutiqueSheet = data.sheets?.find((s: any) => s.source === 'sheet_2_boutique')
+    // Disabled - all leads are already imported to database
+    setNewLeadsCount({ food: 0, boutique: 0 })
+    return
+    
+    // Original code kept for reference
+    // try {
+    //   const response = await fetch('/api/leads/check-new')
+    //   const data = await response.json()
+    //   
+    //   if (data.success) {
+    //     const foodSheet = data.sheets?.find((s: any) => s.source === 'sheet_1_food')
+    //     const boutiqueSheet = data.sheets?.find((s: any) => s.source === 'sheet_2_boutique')
         
         setNewLeadsCount({
           food: foodSheet?.newCount || 0,
