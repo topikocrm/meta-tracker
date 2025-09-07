@@ -29,8 +29,10 @@ export default function PipelineStageTracker({
   variant = 'full',
   showProgress = true
 }: PipelineStageTrackerProps) {
-  const currentIndex = PIPELINE_STAGES.indexOf(currentStage)
-  const progress = STAGE_CONFIGS[currentStage].progress
+  // Ensure we have a valid stage
+  const validStage = currentStage && STAGE_CONFIGS[currentStage] ? currentStage : 'new'
+  const currentIndex = PIPELINE_STAGES.indexOf(validStage)
+  const progress = STAGE_CONFIGS[validStage]?.progress || 0
   
   // Mobile variant - vertical stepper
   if (variant === 'mobile') {
@@ -55,7 +57,7 @@ export default function PipelineStageTracker({
           {PIPELINE_STAGES.map((stage, index) => {
             const config = STAGE_CONFIGS[stage]
             const isPast = index < currentIndex
-            const isCurrent = stage === currentStage
+            const isCurrent = stage === validStage
             const isFuture = index > currentIndex
             
             return (
@@ -88,9 +90,9 @@ export default function PipelineStageTracker({
   if (variant === 'compact') {
     return (
       <div className="flex items-center gap-1">
-        <span className="text-lg">{STAGE_CONFIGS[currentStage].icon}</span>
+        <span className="text-lg">{STAGE_CONFIGS[validStage]?.icon || '🆕'}</span>
         <div className="flex-1">
-          <div className="text-sm font-medium">{STAGE_CONFIGS[currentStage].label}</div>
+          <div className="text-sm font-medium">{STAGE_CONFIGS[validStage]?.label || 'New'}</div>
           <div className="text-xs text-gray-500">Stage {currentIndex + 1}/{PIPELINE_STAGES.length}</div>
         </div>
         {showProgress && (
@@ -177,7 +179,7 @@ export default function PipelineStageTracker({
           {PIPELINE_STAGES.map((stage, index) => {
             const config = STAGE_CONFIGS[stage]
             const isPast = index < currentIndex
-            const isCurrent = stage === currentStage
+            const isCurrent = stage === validStage
             const isFuture = index > currentIndex
             
             return (

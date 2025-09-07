@@ -25,7 +25,14 @@ export default function EnhancedLeadModal({
 }: EnhancedLeadModalProps) {
   const [activeTab, setActiveTab] = useState('overview')
   const [isSaving, setIsSaving] = useState(false)
-  const [leadData, setLeadData] = useState(lead)
+  // Ensure lead has proper stage field
+  const initialLeadData = {
+    ...lead,
+    lead_stage: lead.lead_stage || 'new',
+    contact_status: lead.contact_status || lead.current_status || 'new',
+    lead_quality: lead.lead_quality || 'cold'
+  }
+  const [leadData, setLeadData] = useState(initialLeadData)
   const [isMobile, setIsMobile] = useState(false)
   
   // Check if mobile
@@ -40,7 +47,13 @@ export default function EnhancedLeadModal({
   const additionalData = lead.additional_data || (lead.tool_requirement ? JSON.parse(lead.tool_requirement) : {})
   
   useEffect(() => {
-    setLeadData(lead)
+    const updatedLeadData = {
+      ...lead,
+      lead_stage: lead.lead_stage || 'new',
+      contact_status: lead.contact_status || lead.current_status || 'new',
+      lead_quality: lead.lead_quality || 'cold'
+    }
+    setLeadData(updatedLeadData)
   }, [lead])
   
   const handleFieldUpdate = async (updates: Partial<Lead>) => {
