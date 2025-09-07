@@ -76,9 +76,8 @@ ALTER TABLE leads ADD COLUMN IF NOT EXISTS follow_up_priority follow_up_priority
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS last_contact_date TIMESTAMP WITH TIME ZONE;
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS contact_attempts INTEGER DEFAULT 0;
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS stage_entered_date TIMESTAMP WITH TIME ZONE DEFAULT NOW();
-ALTER TABLE leads ADD COLUMN IF NOT EXISTS days_in_stage INTEGER GENERATED ALWAYS AS (
-    EXTRACT(DAY FROM (NOW() - stage_entered_date))
-) STORED;
+-- Note: days_in_stage removed as generated columns must be immutable
+-- We'll calculate this in the application instead
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS pipeline_progress INTEGER DEFAULT 0;
 
 -- Lost reasons reference table
