@@ -69,9 +69,17 @@ export default function EnhancedLeadModal({
       })
       
       if (response.ok) {
-        const updatedLead = { ...leadData, ...updates }
-        setLeadData(updatedLead)
-        onUpdate?.(updates)
+        const result = await response.json()
+        // Use the updated lead from the server response which includes calculated fields
+        if (result.lead) {
+          setLeadData(result.lead)
+          onUpdate?.(result.lead)
+        } else {
+          // Fallback to local update if server doesn't return the lead
+          const updatedLead = { ...leadData, ...updates }
+          setLeadData(updatedLead)
+          onUpdate?.(updates)
+        }
       }
     } catch (error) {
       console.error('Failed to update lead:', error)

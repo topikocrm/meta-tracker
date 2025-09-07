@@ -130,6 +130,8 @@ export async function PATCH(request: NextRequest) {
       )
     }
     
+    console.log('PATCH request for lead:', id, 'with updates:', updateData)
+    
     // If status is being updated, track the change
     if (updateData.current_status) {
       // Get current status
@@ -154,19 +156,24 @@ export async function PATCH(request: NextRequest) {
     }
     
     // Update the lead
-    const { error } = await supabase
+    const { data: updatedLead, error } = await supabase
       .from('leads')
       .update({
         ...updateData,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
+      .select()
+      .single()
     
     if (error) throw error
     
+    console.log('Lead updated successfully:', updatedLead)
+    
     return NextResponse.json({
       success: true,
-      message: 'Lead updated successfully'
+      message: 'Lead updated successfully',
+      lead: updatedLead
     })
     
   } catch (error) {

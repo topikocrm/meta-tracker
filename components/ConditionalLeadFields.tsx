@@ -47,23 +47,34 @@ export default function ConditionalLeadFields({
       setNotQualifiedReason('')
     }
     
-    // Set default next actions based on status
+    // Set default next actions and stage based on status
     let defaultNextAction: NextAction | undefined
-    if (status === 'not_answered' || status === 'busy_call_later') {
+    let newStage: string | undefined
+    
+    if (status === 'answered') {
+      newStage = 'contacted'
+    } else if (status === 'not_answered' || status === 'busy_call_later') {
       defaultNextAction = 'call_back'
     } else if (status === 'invalid_number' || status === 'do_not_call') {
       defaultNextAction = 'archive'
+      newStage = 'lost'
     }
     
     if (defaultNextAction) {
       setNextAction(defaultNextAction)
     }
     
-    await onUpdate({
+    const updateData: any = {
       contact_status: status,
       next_action: defaultNextAction,
       interest_level: status !== 'answered' ? null : interestLevel
-    })
+    }
+    
+    if (newStage) {
+      updateData.lead_stage = newStage
+    }
+    
+    await onUpdate(updateData)
     
     setIsUpdating(false)
   }
@@ -73,24 +84,38 @@ export default function ConditionalLeadFields({
     setInterestLevel(level)
     setIsUpdating(true)
     
-    // Set default next actions based on interest
+    // Set default next actions and stage based on interest
     let defaultNextAction: NextAction | undefined
-    if (level === 'high' || level === 'medium') {
+    let newStage: string | undefined
+    
+    if (level === 'high') {
       defaultNextAction = 'schedule_demo'
+      newStage = 'qualified'
+    } else if (level === 'medium') {
+      defaultNextAction = 'schedule_demo'
+      newStage = 'qualified'
     } else if (level === 'low') {
       defaultNextAction = 'follow_up_later'
+      newStage = 'nurturing'
     } else if (level === 'no_interest' || level === 'not_qualified') {
       defaultNextAction = 'archive'
+      newStage = 'lost'
     }
     
     if (defaultNextAction) {
       setNextAction(defaultNextAction)
     }
     
-    await onUpdate({
+    const updateData: any = {
       interest_level: level,
       next_action: defaultNextAction
-    })
+    }
+    
+    if (newStage) {
+      updateData.lead_stage = newStage
+    }
+    
+    await onUpdate(updateData)
     
     setIsUpdating(false)
   }
