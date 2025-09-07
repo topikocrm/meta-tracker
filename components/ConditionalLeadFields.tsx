@@ -15,6 +15,8 @@ interface ConditionalLeadFieldsProps {
     followUpDate?: string
     followUpPriority?: FollowUpPriority
     leadStage?: LeadStage
+    informationSent?: boolean
+    waitingForResponse?: boolean
   }
   onUpdate: (data: any) => Promise<void>
   isMobile?: boolean
@@ -36,7 +38,8 @@ export default function ConditionalLeadFields({
   const [customReason, setCustomReason] = useState('')
   const [isUpdating, setIsUpdating] = useState(false)
   const [currentStage, setCurrentStage] = useState<LeadStage>(initialData.leadStage || 'new')
-  const [informationSent, setInformationSent] = useState(false)
+  const [informationSent, setInformationSent] = useState(initialData.informationSent || false)
+  const [waitingForResponse, setWaitingForResponse] = useState(initialData.waitingForResponse || false)
   
   // Update currentStage when initialData changes (e.g., after API update)
   useEffect(() => {
@@ -360,28 +363,41 @@ export default function ConditionalLeadFields({
     setNextAction(action)
     setIsUpdating(true)
     
+    // Initialize update data
+    const updateData: any = {
+      next_action: action
+    }
+    
     // Determine if pipeline should advance based on action
     let newStage: LeadStage | undefined
     
     if (action === 'schedule_demo') {
       newStage = 'demo_scheduled'
     } else if (action === 'send_information') {
-      // Stay in current stage but mark as info sent
+      // Stay in current stage but mark as info sent and set waiting period
       setInformationSent(true)
+      setWaitingForResponse(true)
+      // Set follow-up date to 2 days from now by default
+      const followUpDateValue = new Date()
+      followUpDateValue.setDate(followUpDateValue.getDate() + 2)
+      setFollowUpDate(followUpDateValue.toISOString().slice(0, 16))
+      setFollowUpPriority('high')
+      
+      updateData.information_sent = true
+      updateData.waiting_for_response = true
+      updateData.follow_up_date = followUpDateValue.toISOString().slice(0, 16)
+      updateData.follow_up_priority = 'high'
     } else if (action === 'create_trial') {
       newStage = 'trial_started'
     } else if (action === 'close_deal') {
       newStage = 'won'
     }
     
-    const updateData: any = {
-      next_action: action
-    }
-    
     if (newStage) {
       updateData.lead_stage = newStage
       setCurrentStage(newStage) // Update local state immediately
     }
+    
     
     await onUpdate(updateData)
     setIsUpdating(false)
@@ -466,6 +482,44 @@ export default function ConditionalLeadFields({
     setIsUpdating(false)
   }
   
+  // Handle response after information sent
+  const handleInfoResponse = async (response: 'interested' | 'not_interested' | 'no_response') => {
+    setIsUpdating(true)
+    setWaitingForResponse(false)
+    
+    let updateData: any = {}
+    
+    if (response === 'interested') {
+      // Move to qualified or demo scheduled based on current stage
+      if (currentStage === 'new' || currentStage === 'contacted') {
+        updateData.lead_stage = 'qualified'
+        updateData.interest_level = 'medium'
+        setCurrentStage('qualified')
+        setInterestLevel('medium')
+      }
+      updateData.next_action = 'schedule_demo'
+      updateData.waiting_for_response = false
+    } else if (response === 'not_interested') {
+      updateData.interest_level = 'no_interest'
+      updateData.lead_stage = 'lost'
+      updateData.lost_reason = 'not_interested_after_info'
+      updateData.waiting_for_response = false
+      setCurrentStage('lost')
+      setInterestLevel('no_interest')
+    } else if (response === 'no_response') {
+      // Keep following up, extend deadline
+      const newFollowUp = new Date()
+      newFollowUp.setDate(newFollowUp.getDate() + 3)
+      updateData.next_action = 'follow_up_later'
+      updateData.follow_up_date = newFollowUp.toISOString().slice(0, 16)
+      updateData.contact_attempts = 1
+      setFollowUpDate(newFollowUp.toISOString().slice(0, 16))
+    }
+    
+    await onUpdate(updateData)
+    setIsUpdating(false)
+  }
+  
   return (
     <div className="space-y-6">
       {/* Current Stage Indicator */}
@@ -519,6 +573,44 @@ export default function ConditionalLeadFields({
               <CheckCircle className="h-4 w-4" />
               Demo Completed
             </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Information Response Section - show after info sent */}
+      {informationSent && waitingForResponse && (
+        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm font-medium text-blue-900">📧 Information Sent</p>
+              <p className="text-xs text-blue-700">Waiting for lead response. Follow up scheduled for {followUpDate ? new Date(followUpDate).toLocaleDateString() : '2 days'}.</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className="text-xs font-medium text-blue-800">Lead Response:</p>
+              <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-3'} gap-2`}>
+                <button
+                  onClick={() => handleInfoResponse('interested')}
+                  disabled={isUpdating}
+                  className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm font-medium"
+                >
+                  👍 Interested
+                </button>
+                <button
+                  onClick={() => handleInfoResponse('not_interested')}
+                  disabled={isUpdating}
+                  className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 text-sm font-medium"
+                >
+                  👎 Not Interested
+                </button>
+                <button
+                  onClick={() => handleInfoResponse('no_response')}
+                  disabled={isUpdating}
+                  className="px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 text-sm font-medium"
+                >
+                  😶 No Response
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
