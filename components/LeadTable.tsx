@@ -2,6 +2,8 @@ import { Lead, LeadStatus } from '@/types/database'
 import { Phone, MessageCircle, User, Calendar, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import LeadDetailModal from './LeadDetailModal'
+import LeadQualityBadge from './LeadQualityBadge'
+import PipelineStageTracker from './PipelineStageTracker'
 
 interface LeadTableProps {
   leads: Lead[]
@@ -54,7 +56,10 @@ export default function LeadTable({ leads, onStatusUpdate, isDemo = false }: Lea
                 Campaign
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
+                Quality
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Pipeline
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Assigned To
@@ -119,19 +124,14 @@ export default function LeadTable({ leads, onStatusUpdate, isDemo = false }: Lea
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <select
-                    value={lead.current_status}
-                    onChange={(e) => onStatusUpdate(lead.id, e.target.value as LeadStatus)}
-                    className={`px-2 py-1 text-xs font-semibold rounded-full ${statusColors[lead.current_status]}`}
-                  >
-                    <option value="new">New</option>
-                    <option value="contacted">Contacted</option>
-                    <option value="interested">Interested</option>
-                    <option value="demo">Demo</option>
-                    <option value="negotiation">Negotiation</option>
-                    <option value="won">Won</option>
-                    <option value="lost">Lost</option>
-                  </select>
+                  <LeadQualityBadge quality={lead.lead_quality || 'cold'} size="sm" showLabel={true} />
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <PipelineStageTracker 
+                    currentStage={lead.lead_stage || 'new'} 
+                    variant="compact" 
+                    showProgress={false}
+                  />
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">

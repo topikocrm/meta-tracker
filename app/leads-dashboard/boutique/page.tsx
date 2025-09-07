@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, RefreshCw, Phone, MessageSquare, Search, Filter, Download, UserPlus, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
-import StatusBadge from '@/components/StatusBadge'
+import LeadQualityBadge from '@/components/LeadQualityBadge'
+import PipelineStageTracker from '@/components/PipelineStageTracker'
 import EnhancedLeadModal from '@/components/EnhancedLeadModal'
 import LeadDashboardStats from '@/components/LeadDashboardStats'
 
@@ -341,11 +342,24 @@ export default function BoutiqueLeadsPage() {
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <button
-                      onClick={() => handleSort('current_status')}
+                      onClick={() => handleSort('lead_quality')}
                       className="flex items-center gap-1 hover:text-gray-700"
                     >
-                      Status
-                      {sortField === 'current_status' ? (
+                      Quality
+                      {sortField === 'lead_quality' ? (
+                        sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                      ) : (
+                        <ArrowUpDown className="h-3 w-3 opacity-50" />
+                      )}
+                    </button>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <button
+                      onClick={() => handleSort('lead_stage')}
+                      className="flex items-center gap-1 hover:text-gray-700"
+                    >
+                      Pipeline Stage
+                      {sortField === 'lead_stage' ? (
                         sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
                       ) : (
                         <ArrowUpDown className="h-3 w-3 opacity-50" />
@@ -410,7 +424,14 @@ export default function BoutiqueLeadsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusBadge status={lead.current_status} size="sm" />
+                      <LeadQualityBadge quality={lead.lead_quality || 'cold'} size="sm" showLabel={true} />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <PipelineStageTracker 
+                        currentStage={lead.lead_stage || 'new'} 
+                        variant="compact" 
+                        showProgress={false}
+                      />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {lead.assigned_user?.name || 'Unassigned'}

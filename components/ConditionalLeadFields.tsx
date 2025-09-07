@@ -36,6 +36,14 @@ export default function ConditionalLeadFields({
   const [customReason, setCustomReason] = useState('')
   const [isUpdating, setIsUpdating] = useState(false)
   const [currentStage, setCurrentStage] = useState<LeadStage>(initialData.leadStage || 'new')
+  const [informationSent, setInformationSent] = useState(false)
+  
+  // Update currentStage when initialData changes (e.g., after API update)
+  useEffect(() => {
+    if (initialData.leadStage) {
+      setCurrentStage(initialData.leadStage)
+    }
+  }, [initialData.leadStage])
 
   // Handle contact status change
   const handleContactStatusChange = async (status: ContactStatus) => {
@@ -353,12 +361,13 @@ export default function ConditionalLeadFields({
     setIsUpdating(true)
     
     // Determine if pipeline should advance based on action
-    let newStage: string | undefined
+    let newStage: LeadStage | undefined
     
     if (action === 'schedule_demo') {
       newStage = 'demo_scheduled'
     } else if (action === 'send_information') {
       // Stay in current stage but mark as info sent
+      setInformationSent(true)
     } else if (action === 'create_trial') {
       newStage = 'trial_started'
     } else if (action === 'close_deal') {
@@ -371,36 +380,81 @@ export default function ConditionalLeadFields({
     
     if (newStage) {
       updateData.lead_stage = newStage
+      setCurrentStage(newStage) // Update local state immediately
     }
     
     await onUpdate(updateData)
     setIsUpdating(false)
   }
   
-  // Next Action Selector (always visible)
-  const NextActionSelector = () => (
-    <div className="space-y-3">
-      <label className="block text-sm font-medium text-gray-700">
-        <MessageSquare className="inline h-4 w-4 mr-1" />
-        Next Action
-      </label>
-      <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
-        {['call_back', 'send_information', 'schedule_demo', 'create_trial', 'close_deal', 'follow_up_later', 'no_action'].map((action) => (
-          <button
-            key={action}
-            onClick={() => handleNextActionChange(action as NextAction)}
-            className={`p-2 rounded-lg border transition-all text-xs font-medium ${
-              nextAction === action 
-                ? 'border-blue-500 bg-blue-50 text-blue-700' 
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            {action.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-          </button>
-        ))}
+  // Stage-aware Next Action Selector
+  const NextActionSelector = () => {
+    // Determine which actions to show based on current stage
+    let primaryActions: NextAction[] = []
+    let secondaryActions: NextAction[] = ['call_back', 'follow_up_later', 'no_action']
+    
+    if (currentStage === 'new' || currentStage === 'contacted') {
+      primaryActions = ['schedule_demo', 'send_information']
+    } else if (currentStage === 'qualified') {
+      primaryActions = ['schedule_demo', 'send_information']
+    } else if (currentStage === 'demo_scheduled') {
+      primaryActions = ['send_information']
+      // Demo Completed is handled separately as a special button
+    } else if (currentStage === 'demo_completed') {
+      primaryActions = ['create_trial', 'send_information']
+    } else if (currentStage === 'trial_started') {
+      primaryActions = ['close_deal', 'send_information']
+    }
+    
+    return (
+      <div className="space-y-3">
+        <label className="block text-sm font-medium text-gray-700">
+          <MessageSquare className="inline h-4 w-4 mr-1" />
+          Next Action
+        </label>
+        
+        {/* Primary Actions - Stage Specific */}
+        {primaryActions.length > 0 && (
+          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-2 mb-3`}>
+            {primaryActions.map((action) => (
+              <button
+                key={action}
+                onClick={() => handleNextActionChange(action)}
+                className={`p-3 rounded-lg border-2 transition-all text-sm font-medium ${
+                  nextAction === action 
+                    ? 'border-blue-500 bg-blue-50 text-blue-700' 
+                    : 'border-blue-200 hover:border-blue-300 bg-blue-50'
+                }`}
+              >
+                {action === 'schedule_demo' && '📅 '}
+                {action === 'send_information' && '📧 '}
+                {action === 'create_trial' && '🧪 '}
+                {action === 'close_deal' && '🎉 '}
+                {action.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              </button>
+            ))}
+          </div>
+        )}
+        
+        {/* Secondary Actions - Always Available */}
+        <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
+          {secondaryActions.map((action) => (
+            <button
+              key={action}
+              onClick={() => handleNextActionChange(action)}
+              className={`p-2 rounded-lg border transition-all text-xs font-medium ${
+                nextAction === action 
+                  ? 'border-gray-500 bg-gray-50 text-gray-700' 
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              {action.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            </button>
+          ))}
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   // Handle demo completion
   const handleDemoCompleted = async () => {
@@ -414,6 +468,32 @@ export default function ConditionalLeadFields({
   
   return (
     <div className="space-y-6">
+      {/* Current Stage Indicator */}
+      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium text-blue-600 uppercase tracking-wide">Current Stage</p>
+            <p className="text-lg font-semibold text-blue-900">
+              {currentStage.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            </p>
+          </div>
+          {informationSent && (
+            <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+              ✓ Info Sent
+            </div>
+          )}
+        </div>
+        <p className="text-xs text-blue-700 mt-2">
+          {currentStage === 'new' && 'Make first contact with the lead'}
+          {currentStage === 'contacted' && 'Assess interest and qualify the lead'}
+          {currentStage === 'qualified' && 'Schedule a demo to showcase your product'}
+          {currentStage === 'demo_scheduled' && 'Conduct the demo and mark as completed'}
+          {currentStage === 'demo_completed' && 'Start a trial or close the deal'}
+          {currentStage === 'trial_started' && 'Support the trial and work towards closing'}
+          {currentStage === 'won' && '🎉 Deal closed successfully!'}
+        </p>
+      </div>
+      
       <ContactStatusSelector />
       
       {contactStatus === 'answered' && (
