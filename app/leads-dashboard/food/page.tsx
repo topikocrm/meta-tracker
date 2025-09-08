@@ -75,7 +75,7 @@ export default function FoodLeadsPage() {
         const managed = (data.leads || []).filter((l: any) => l.is_managed !== false)
         
         // Debug: Log unique statuses to help identify filtering issues
-        const uniqueStatuses = [...new Set(managed.map(l => l.current_status))].filter(Boolean)
+        const uniqueStatuses = [...new Set(managed.map((l: any) => l.current_status))].filter(Boolean)
         console.log('Unique lead statuses in data:', uniqueStatuses)
         console.log('Total managed leads:', managed.length)
         
