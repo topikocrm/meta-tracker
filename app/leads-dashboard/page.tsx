@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Users, ShoppingBag, TrendingUp, Clock, CheckCircle, XCircle, AlertCircle, ArrowRight, RefreshCw, Loader } from 'lucide-react'
+import { Users, ShoppingBag, TrendingUp, Clock, CheckCircle, XCircle, AlertCircle, ArrowRight, RefreshCw, Loader, Calendar } from 'lucide-react'
 
 interface DashboardStats {
   food: {
@@ -43,6 +43,8 @@ interface DashboardStats {
   }
 }
 
+type DateFilter = 'today' | 'last7days' | 'last30days' | 'all'
+
 export default function LeadsDashboardPage() {
   const router = useRouter()
   const [stats, setStats] = useState<DashboardStats>({
@@ -52,11 +54,12 @@ export default function LeadsDashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [newLeadsCount, setNewLeadsCount] = useState({ food: 0, boutique: 0 })
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
+  const [dateFilter, setDateFilter] = useState<DateFilter>('all')
 
   useEffect(() => {
     fetchDashboardData()
     checkNewLeads()
-  }, [])
+  }, [dateFilter])
 
   const fetchDashboardData = async () => {
     setIsLoading(true)
@@ -112,24 +115,55 @@ export default function LeadsDashboardPage() {
     }
   }
 
+  const filterLeadsByDate = (leads: any[]) => {
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    
+    switch (dateFilter) {
+      case 'today':
+        return leads.filter(lead => {
+          const leadDate = new Date(lead.created_at || lead.created_time)
+          return leadDate >= today
+        })
+      case 'last7days':
+        const sevenDaysAgo = new Date(today)
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+        return leads.filter(lead => {
+          const leadDate = new Date(lead.created_at || lead.created_time)
+          return leadDate >= sevenDaysAgo
+        })
+      case 'last30days':
+        const thirtyDaysAgo = new Date(today)
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+        return leads.filter(lead => {
+          const leadDate = new Date(lead.created_at || lead.created_time)
+          return leadDate >= thirtyDaysAgo
+        })
+      case 'all':
+      default:
+        return leads
+    }
+  }
+
   const calculateStats = (leads: any[]) => {
     // All leads with is_managed=true are considered managed, regardless of status
     const managedLeads = leads.filter(l => l.is_managed !== false)
+    const filteredLeads = filterLeadsByDate(managedLeads)
     return {
-      total: managedLeads.length,
+      total: filteredLeads.length,
       // Pipeline stages
-      new: managedLeads.filter(l => !l.lead_stage || l.lead_stage === 'new').length,
-      contacted: managedLeads.filter(l => l.lead_stage === 'contacted').length,
-      qualified: managedLeads.filter(l => l.lead_stage === 'qualified').length,
-      demo: managedLeads.filter(l => l.lead_stage === 'demo_scheduled' || l.lead_stage === 'demo_completed').length,
-      trial: managedLeads.filter(l => l.lead_stage === 'trial_started').length,
-      won: managedLeads.filter(l => l.lead_stage === 'won').length,
-      lost: managedLeads.filter(l => l.lead_stage === 'lost').length,
+      new: filteredLeads.filter(l => !l.lead_stage || l.lead_stage === 'new').length,
+      contacted: filteredLeads.filter(l => l.lead_stage === 'contacted').length,
+      qualified: filteredLeads.filter(l => l.lead_stage === 'qualified').length,
+      demo: filteredLeads.filter(l => l.lead_stage === 'demo_scheduled' || l.lead_stage === 'demo_completed').length,
+      trial: filteredLeads.filter(l => l.lead_stage === 'trial_started').length,
+      won: filteredLeads.filter(l => l.lead_stage === 'won').length,
+      lost: filteredLeads.filter(l => l.lead_stage === 'lost').length,
       // Lead quality
-      hot: managedLeads.filter(l => l.lead_quality === 'hot').length,
-      warm: managedLeads.filter(l => l.lead_quality === 'warm').length,
-      cool: managedLeads.filter(l => l.lead_quality === 'cool').length,
-      cold: managedLeads.filter(l => l.lead_quality === 'cold').length
+      hot: filteredLeads.filter(l => l.lead_quality === 'hot').length,
+      warm: filteredLeads.filter(l => l.lead_quality === 'warm').length,
+      cool: filteredLeads.filter(l => l.lead_quality === 'cool').length,
+      cold: filteredLeads.filter(l => l.lead_quality === 'cold').length
     }
   }
 
@@ -156,9 +190,54 @@ export default function LeadsDashboardPage() {
               <p className="text-gray-600 mt-1">Manage your Food and Boutique leads with CRM features</p>
             </div>
             <div className="flex items-center gap-4">
+              {/* Date Filter */}
+              <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setDateFilter('today')}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    dateFilter === 'today' 
+                      ? 'bg-white text-blue-600 shadow-sm' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Today
+                </button>
+                <button
+                  onClick={() => setDateFilter('last7days')}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    dateFilter === 'last7days' 
+                      ? 'bg-white text-blue-600 shadow-sm' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Last 7 Days
+                </button>
+                <button
+                  onClick={() => setDateFilter('last30days')}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    dateFilter === 'last30days' 
+                      ? 'bg-white text-blue-600 shadow-sm' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Last 30 Days
+                </button>
+                <button
+                  onClick={() => setDateFilter('all')}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    dateFilter === 'all' 
+                      ? 'bg-white text-blue-600 shadow-sm' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  All Time
+                </button>
+              </div>
+              
               <div className="text-sm text-gray-500">
                 Last updated: {lastRefresh.toLocaleTimeString()}
               </div>
+              
               <button
                 onClick={handleRefresh}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -218,7 +297,13 @@ export default function LeadsDashboardPage() {
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <p className="text-3xl font-bold text-gray-900">{stats.food.total}</p>
-                    <p className="text-sm text-gray-600">Total Managed Leads</p>
+                    <p className="text-sm text-gray-600">
+                      {dateFilter === 'all' ? 'Total' : (
+                        dateFilter === 'today' ? "Today's" : 
+                        dateFilter === 'last7days' ? 'Last 7 Days' : 
+                        'Last 30 Days'
+                      )} Leads
+                    </p>
                   </div>
                   {newLeadsCount.food > 0 && (
                     <div className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
@@ -290,7 +375,13 @@ export default function LeadsDashboardPage() {
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <p className="text-3xl font-bold text-gray-900">{stats.boutique.total}</p>
-                    <p className="text-sm text-gray-600">Total Managed Leads</p>
+                    <p className="text-sm text-gray-600">
+                      {dateFilter === 'all' ? 'Total' : (
+                        dateFilter === 'today' ? "Today's" : 
+                        dateFilter === 'last7days' ? 'Last 7 Days' : 
+                        'Last 30 Days'
+                      )} Leads
+                    </p>
                   </div>
                   {newLeadsCount.boutique > 0 && (
                     <div className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
