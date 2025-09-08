@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, RefreshCw, Phone, MessageSquare, Search, Filter, Download, UserPlus, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowLeft, RefreshCw, Phone, MessageSquare, Search, Filter, Download, UserPlus, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, Loader } from 'lucide-react'
 import LeadQualityBadge from '@/components/LeadQualityBadge'
 import PipelineStageTracker from '@/components/PipelineStageTracker'
 import EnhancedLeadModal from '@/components/EnhancedLeadModal'
 import LeadDashboardStats from '@/components/LeadDashboardStats-new'
+import LoadingOverlay from '@/components/LoadingOverlay'
 
 interface Lead {
   id: string
@@ -38,6 +39,9 @@ export default function BoutiqueLeadsPage() {
   const [managedLeads, setManagedLeads] = useState<Lead[]>([])
   const [newLeads, setNewLeads] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isImporting, setIsImporting] = useState(false)
+  const [importingLeadId, setImportingLeadId] = useState<string | null>(null)
   const [selectedLead, setSelectedLead] = useState<any>(null)
   const [showModal, setShowModal] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -69,6 +73,12 @@ export default function BoutiqueLeadsPage() {
       if (data.success) {
         // Filter for managed leads only
         const managed = (data.leads || []).filter((l: any) => l.is_managed !== false)
+        
+        // Debug: Log unique statuses to help identify filtering issues
+        const uniqueStatuses = [...new Set(managed.map(l => l.current_status))].filter(Boolean)
+        console.log('Unique lead statuses in data:', uniqueStatuses)
+        console.log('Total managed leads:', managed.length)
+        
         setManagedLeads(managed)
       }
     } catch (error) {
@@ -106,6 +116,7 @@ export default function BoutiqueLeadsPage() {
   }
 
   const handleQuickImport = async (lead: any) => {
+    setImportingLeadId(lead._rowNumber)
     try {
       const response = await fetch('/api/leads/quick-import', {
         method: 'POST',
@@ -124,12 +135,15 @@ export default function BoutiqueLeadsPage() {
       }
     } catch (error) {
       console.error('Failed to import lead:', error)
+    } finally {
+      setImportingLeadId(null)
     }
   }
 
   const handleBulkImport = async () => {
     if (newLeads.length === 0) return
     
+    setIsImporting(true)
     try {
       const response = await fetch('/api/leads/bulk-import', {
         method: 'POST',
@@ -145,12 +159,14 @@ export default function BoutiqueLeadsPage() {
       if (data.success) {
         // Clear new leads and refresh managed leads
         setNewLeads([])
-        fetchLeads()
+        await fetchLeads()
       } else {
         console.error('Bulk import failed:', data.error)
       }
     } catch (error) {
       console.error('Failed to bulk import leads:', error)
+    } finally {
+      setIsImporting(false)
     }
   }
 
@@ -164,6 +180,16 @@ export default function BoutiqueLeadsPage() {
     const matchesAssignee = assigneeFilter === 'all' || 
       (assigneeFilter === 'unassigned' && !lead.assigned_to) ||
       lead.assigned_to === assigneeFilter
+    
+    // Debug logging to help identify status mismatch issues
+    if (statusFilter !== 'all' && !matchesStatus) {
+      console.log('Status mismatch:', {
+        leadName: lead.full_name,
+        leadStatus: lead.current_status,
+        filterStatus: statusFilter,
+        statusType: typeof lead.current_status
+      })
+    }
     
     return matchesSearch && matchesStatus && matchesAssignee
   }).sort((a, b) => {
@@ -211,6 +237,10 @@ export default function BoutiqueLeadsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Loading Overlay */}
+      {isLoading && <LoadingOverlay fullScreen message="Loading Boutique Leads..." />}
+      {isImporting && <LoadingOverlay fullScreen message={`Importing ${newLeads.length} leads...`} />}
+      
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -229,14 +259,16 @@ export default function BoutiqueLeadsPage() {
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => {
-                  fetchLeads()
-                  checkNewLeads()
+                onClick={async () => {
+                  setIsRefreshing(true)
+                  await Promise.all([fetchLeads(), checkNewLeads()])
+                  setIsRefreshing(false)
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                disabled={isRefreshing}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <RefreshCw className="h-4 w-4" />
-                Refresh
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Refreshing...' : 'Refresh'}
               </button>
             </div>
           </div>
@@ -256,9 +288,17 @@ export default function BoutiqueLeadsPage() {
                   </h3>
                   <button
                     onClick={handleBulkImport}
-                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 text-sm font-medium"
+                    disabled={isImporting}
+                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
-                    Import All {newLeads.length} Leads
+                    {isImporting ? (
+                      <>
+                        <Loader className="h-4 w-4 animate-spin" />
+                        Importing...
+                      </>
+                    ) : (
+                      <>Import All {newLeads.length} Leads</>
+                    )}
                   </button>
                 </div>
                 <div className="space-y-2">
@@ -272,10 +312,15 @@ export default function BoutiqueLeadsPage() {
                       </div>
                       <button
                         onClick={() => handleQuickImport(lead)}
-                        className="flex items-center gap-1 px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-sm"
+                        disabled={importingLeadId === lead._rowNumber}
+                        className="flex items-center gap-1 px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <UserPlus className="h-4 w-4" />
-                        Import & Manage
+                        {importingLeadId === lead._rowNumber ? (
+                          <Loader className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <UserPlus className="h-4 w-4" />
+                        )}
+                        {importingLeadId === lead._rowNumber ? 'Importing...' : 'Import & Manage'}
                       </button>
                     </div>
                   ))}
@@ -312,7 +357,7 @@ export default function BoutiqueLeadsPage() {
                   placeholder="Search by name, phone, or email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder:text-gray-500"
                 />
               </div>
             </div>
@@ -320,7 +365,7 @@ export default function BoutiqueLeadsPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             >
               <option value="all">All Status</option>
               <option value="new">New</option>
@@ -335,7 +380,7 @@ export default function BoutiqueLeadsPage() {
             <select
               value={assigneeFilter}
               onChange={(e) => setAssigneeFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             >
               <option value="all">All Assignees</option>
               <option value="unassigned">Unassigned</option>

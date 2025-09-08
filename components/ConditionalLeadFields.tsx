@@ -299,7 +299,7 @@ export default function ConditionalLeadFields({
             value={customReason}
             onChange={(e) => setCustomReason(e.target.value)}
             placeholder="Please specify..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder:text-gray-500"
             rows={2}
           />
         )}
@@ -331,7 +331,7 @@ export default function ConditionalLeadFields({
               setFollowUpDate(e.target.value)
               onUpdate({ follow_up_date: e.target.value })
             }}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
           />
           <select
             value={followUpPriority}
@@ -339,7 +339,7 @@ export default function ConditionalLeadFields({
               setFollowUpPriority(e.target.value as FollowUpPriority)
               onUpdate({ follow_up_priority: e.target.value })
             }}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
           >
             <option value="urgent">🔴 Urgent (24h)</option>
             <option value="high">🟠 High (2-3 days)</option>

@@ -24,3 +24,57 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Force ALL form inputs to always use light theme colors regardless of system theme */
+input,
+textarea,
+select,
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+input[type="password"],
+input[type="search"],
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"],
+input[type="week"],
+input[type="month"] {
+  background-color: white !important;
+  color: rgb(17, 24, 39) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+}
+
+/* Ensure placeholder text is always visible */
+input::placeholder,
+textarea::placeholder {
+  color: rgb(107, 114, 128) !important;
+  -webkit-text-fill-color: rgb(107, 114, 128) !important;
+  opacity: 1 !important;
+}
+
+/* Fix date/time picker calendar icon color */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="week"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator {
+  filter: invert(0) !important;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+/* Fix for date inputs in Firefox */
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"] {
+  color-scheme: light !important;
+}
+
+/* Ensure focus states are visible */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid rgb(59, 130, 246) !important;
+  outline-offset: 2px !important;
+}

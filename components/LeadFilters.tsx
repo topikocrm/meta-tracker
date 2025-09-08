@@ -51,7 +51,7 @@ export default function LeadFilters({
             <input
               type="text"
               placeholder="Search by name, phone, or campaign..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 placeholder:text-gray-500"
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
             />
@@ -60,7 +60,7 @@ export default function LeadFilters({
 
         <div className="flex gap-4">
           <select
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
             value={statusFilter}
             onChange={(e) => onStatusChange(e.target.value as LeadStatus | 'all')}
           >
@@ -72,7 +72,7 @@ export default function LeadFilters({
           </select>
 
           <select
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
             value={campaignFilter}
             onChange={(e) => onCampaignChange(e.target.value)}
           >

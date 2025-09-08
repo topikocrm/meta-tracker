@@ -105,7 +105,7 @@ export default function CommentSection({ leadId, currentUserId }: CommentSection
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Add a note or comment..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder:text-gray-500"
             rows={2}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && e.ctrlKey) {
