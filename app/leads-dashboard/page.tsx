@@ -55,6 +55,10 @@ export default function LeadsDashboardPage() {
   const [newLeadsCount, setNewLeadsCount] = useState({ food: 0, boutique: 0 })
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
   const [dateFilter, setDateFilter] = useState<DateFilter>('all')
+  const [unfilteredStats, setUnfilteredStats] = useState<DashboardStats>({
+    food: { total: 0, new: 0, contacted: 0, qualified: 0, demo: 0, trial: 0, won: 0, lost: 0, hot: 0, warm: 0, cool: 0, cold: 0 },
+    boutique: { total: 0, new: 0, contacted: 0, qualified: 0, demo: 0, trial: 0, won: 0, lost: 0, hot: 0, warm: 0, cool: 0, cold: 0 }
+  })
 
   useEffect(() => {
     fetchDashboardData()
@@ -81,8 +85,23 @@ export default function LeadsDashboardPage() {
         const foodLeads = leads.filter((l: any) => l.sheet_source === 'sheet_1_food')
         const boutiqueLeads = leads.filter((l: any) => l.sheet_source === 'sheet_2_boutique')
         
-        const foodStats = calculateStats(foodLeads)
-        const boutiqueStats = calculateStats(boutiqueLeads)
+        // Calculate unfiltered stats for debugging
+        const unfilteredFoodStats = calculateStats(foodLeads, false)
+        const unfilteredBoutiqueStats = calculateStats(boutiqueLeads, false)
+        setUnfilteredStats({
+          food: unfilteredFoodStats,
+          boutique: unfilteredBoutiqueStats
+        })
+        
+        // Calculate filtered stats
+        const foodStats = calculateStats(foodLeads, true)
+        const boutiqueStats = calculateStats(boutiqueLeads, true)
+        
+        console.log('Filter:', dateFilter)
+        console.log('Unfiltered Food Total:', unfilteredFoodStats.total)
+        console.log('Filtered Food Total:', foodStats.total)
+        console.log('Unfiltered Boutique Total:', unfilteredBoutiqueStats.total)
+        console.log('Filtered Boutique Total:', boutiqueStats.total)
         
         setStats({
           food: foodStats,
@@ -116,63 +135,90 @@ export default function LeadsDashboardPage() {
   }
 
   const filterLeadsByDate = (leads: any[]) => {
-    const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    
-    // Debug logging
-    if (dateFilter !== 'all' && leads.length > 0) {
-      console.log('Date filter:', dateFilter)
-      console.log('Sample lead dates:', leads.slice(0, 3).map(l => ({
-        created_at: l.created_at,
-        created_time: l.created_time,
-        parsed: new Date(l.created_at || l.created_time).toLocaleDateString()
-      })))
+    if (dateFilter === 'all') {
+      return leads
     }
     
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    today.setHours(0, 0, 0, 0)
+    
+    // Calculate the cutoff date based on filter
+    let cutoffDate: Date
     switch (dateFilter) {
       case 'today':
-        return leads.filter(lead => {
-          const dateStr = lead.created_at || lead.created_time
-          if (!dateStr) return false
-          const leadDate = new Date(dateStr)
-          // Check if date is valid
-          if (isNaN(leadDate.getTime())) return false
-          return leadDate >= today
-        })
+        cutoffDate = today
+        break
       case 'last7days':
-        const sevenDaysAgo = new Date(today)
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-        console.log('Filtering from:', sevenDaysAgo.toLocaleDateString())
-        return leads.filter(lead => {
-          const dateStr = lead.created_at || lead.created_time
-          if (!dateStr) return false
-          const leadDate = new Date(dateStr)
-          // Check if date is valid
-          if (isNaN(leadDate.getTime())) return false
-          return leadDate >= sevenDaysAgo
-        })
+        cutoffDate = new Date(today)
+        cutoffDate.setDate(cutoffDate.getDate() - 6) // -6 because we want to include today
+        break
       case 'last30days':
-        const thirtyDaysAgo = new Date(today)
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-        console.log('Filtering from:', thirtyDaysAgo.toLocaleDateString())
-        return leads.filter(lead => {
-          const dateStr = lead.created_at || lead.created_time
-          if (!dateStr) return false
-          const leadDate = new Date(dateStr)
-          // Check if date is valid
-          if (isNaN(leadDate.getTime())) return false
-          return leadDate >= thirtyDaysAgo
-        })
-      case 'all':
+        cutoffDate = new Date(today)
+        cutoffDate.setDate(cutoffDate.getDate() - 29) // -29 because we want to include today
+        break
       default:
         return leads
     }
+    
+    // Debug logging
+    console.log('=== Date Filter Debug ===')
+    console.log('Filter type:', dateFilter)
+    console.log('Today:', today.toISOString())
+    console.log('Cutoff date:', cutoffDate.toISOString())
+    console.log('Total leads before filter:', leads.length)
+    
+    // Sample some leads to see their dates
+    if (leads.length > 0) {
+      console.log('Sample lead dates:')
+      leads.slice(0, 5).forEach((lead, i) => {
+        const dateStr = lead.created_at || lead.created_time
+        console.log(`  Lead ${i + 1}: ${lead.full_name?.substring(0, 20)}...`)
+        console.log(`    created_at: ${lead.created_at}`)
+        console.log(`    created_time: ${lead.created_time}`)
+        if (dateStr) {
+          const parsed = new Date(dateStr)
+          console.log(`    Parsed date: ${parsed.toISOString()}`)
+          console.log(`    Is valid: ${!isNaN(parsed.getTime())}`)
+        }
+      })
+    }
+    
+    const filtered = leads.filter(lead => {
+      // Try multiple date fields
+      const dateStr = lead.created_at || lead.created_time
+      
+      if (!dateStr) {
+        return false
+      }
+      
+      // Parse the date
+      const leadDate = new Date(dateStr)
+      
+      // Check if date is valid
+      if (isNaN(leadDate.getTime())) {
+        return false
+      }
+      
+      // Set to start of day for comparison
+      const leadDateStart = new Date(leadDate.getFullYear(), leadDate.getMonth(), leadDate.getDate())
+      leadDateStart.setHours(0, 0, 0, 0)
+      
+      // Check if lead date is after or equal to cutoff
+      return leadDateStart >= cutoffDate
+    })
+    
+    console.log('Filtered leads count:', filtered.length)
+    console.log('=== End Debug ===')
+    
+    return filtered
   }
 
-  const calculateStats = (leads: any[]) => {
+  const calculateStats = (leads: any[], applyDateFilter: boolean = true) => {
     // All leads with is_managed=true are considered managed, regardless of status
     const managedLeads = leads.filter(l => l.is_managed !== false)
-    const filteredLeads = filterLeadsByDate(managedLeads)
+    const filteredLeads = applyDateFilter ? filterLeadsByDate(managedLeads) : managedLeads
+    
     return {
       total: filteredLeads.length,
       // Pipeline stages
@@ -214,11 +260,7 @@ export default function LeadsDashboardPage() {
               <p className="text-gray-600 mt-1">
                 {dateFilter === 'all' 
                   ? 'Manage your Food and Boutique leads with CRM features'
-                  : dateFilter === 'today'
-                  ? `Showing today's leads (${new Date().toLocaleDateString()})`
-                  : dateFilter === 'last7days'
-                  ? `Showing leads from the last 7 days`
-                  : `Showing leads from the last 30 days`
+                  : `Showing ${dateFilter === 'today' ? "today's" : dateFilter === 'last7days' ? 'last 7 days' : 'last 30 days'} leads`
                 }
               </p>
             </div>
