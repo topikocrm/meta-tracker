@@ -150,12 +150,14 @@ export default function LeadsDashboardPage() {
         cutoffDate = today
         break
       case 'last7days':
-        cutoffDate = new Date(today)
-        cutoffDate.setDate(cutoffDate.getDate() - 6) // -6 because we want to include today
+        cutoffDate = new Date()
+        cutoffDate.setDate(cutoffDate.getDate() - 7)
+        cutoffDate.setHours(0, 0, 0, 0)
         break
       case 'last30days':
-        cutoffDate = new Date(today)
-        cutoffDate.setDate(cutoffDate.getDate() - 29) // -29 because we want to include today
+        cutoffDate = new Date()
+        cutoffDate.setDate(cutoffDate.getDate() - 30)
+        cutoffDate.setHours(0, 0, 0, 0)
         break
       default:
         return leads
@@ -185,10 +187,11 @@ export default function LeadsDashboardPage() {
     }
     
     const filtered = leads.filter(lead => {
-      // Try multiple date fields
-      const dateStr = lead.created_at || lead.created_time
+      // Use created_time (original lead creation date from sheets) NOT created_at (database import date)
+      const dateStr = lead.created_time || lead.created_at
       
       if (!dateStr) {
+        console.log('Lead with no date:', lead.full_name)
         return false
       }
       
@@ -197,6 +200,7 @@ export default function LeadsDashboardPage() {
       
       // Check if date is valid
       if (isNaN(leadDate.getTime())) {
+        console.log('Invalid date for lead:', lead.full_name, dateStr)
         return false
       }
       
@@ -204,8 +208,15 @@ export default function LeadsDashboardPage() {
       const leadDateStart = new Date(leadDate.getFullYear(), leadDate.getMonth(), leadDate.getDate())
       leadDateStart.setHours(0, 0, 0, 0)
       
-      // Check if lead date is after or equal to cutoff
-      return leadDateStart >= cutoffDate
+      // Check if lead date is on or after the cutoff date
+      const includeThisLead = leadDateStart >= cutoffDate
+      
+      // Debug log for first few May leads to see why they're included
+      if (leadDate.getMonth() === 4) { // May is month 4 (0-indexed)
+        console.log(`May lead: ${lead.full_name}, Date: ${leadDateStart.toLocaleDateString()}, Cutoff: ${cutoffDate.toLocaleDateString()}, Include: ${includeThisLead}`)
+      }
+      
+      return includeThisLead
     })
     
     console.log('Filtered leads count:', filtered.length)
