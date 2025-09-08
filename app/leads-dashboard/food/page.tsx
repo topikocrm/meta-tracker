@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, RefreshCw, Phone, MessageSquare, Search, Filter, Download, UserPlus, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, Loader } from 'lucide-react'
+import { ArrowLeft, RefreshCw, Phone, MessageSquare, Search, Filter, Download, UserPlus, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, Loader, Plus } from 'lucide-react'
 import LeadQualityBadge from '@/components/LeadQualityBadge'
 import PipelineStageTracker from '@/components/PipelineStageTracker'
 import EnhancedLeadModal from '@/components/EnhancedLeadModal'
 import LeadDashboardStats from '@/components/LeadDashboardStats-new'
 import LoadingOverlay from '@/components/LoadingOverlay'
+import AddLeadModal from '@/components/AddLeadModal'
 
 interface Lead {
   id: string
@@ -50,6 +51,7 @@ export default function FoodLeadsPage() {
   const [users, setUsers] = useState<any[]>([])
   const [sortField, setSortField] = useState<'created_time' | 'full_name' | 'current_status' | 'assigned_to' | 'lead_quality' | 'lead_stage'>('created_time')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  const [showAddLeadModal, setShowAddLeadModal] = useState(false)
 
   useEffect(() => {
     fetchLeads()
@@ -258,6 +260,13 @@ export default function FoodLeadsPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowAddLeadModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                <Plus className="h-4 w-4" />
+                Add Lead
+              </button>
               <button
                 onClick={async () => {
                   setIsRefreshing(true)
@@ -575,6 +584,17 @@ export default function FoodLeadsPage() {
           }}
         />
       )}
+      
+      {/* Add Lead Modal */}
+      <AddLeadModal
+        isOpen={showAddLeadModal}
+        onClose={() => setShowAddLeadModal(false)}
+        sheetSource="sheet_1_food"
+        onLeadAdded={() => {
+          fetchLeads()
+          setShowAddLeadModal(false)
+        }}
+      />
     </div>
   )
 }
