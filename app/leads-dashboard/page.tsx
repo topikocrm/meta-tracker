@@ -119,24 +119,48 @@ export default function LeadsDashboardPage() {
     const now = new Date()
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
     
+    // Debug logging
+    if (dateFilter !== 'all' && leads.length > 0) {
+      console.log('Date filter:', dateFilter)
+      console.log('Sample lead dates:', leads.slice(0, 3).map(l => ({
+        created_at: l.created_at,
+        created_time: l.created_time,
+        parsed: new Date(l.created_at || l.created_time).toLocaleDateString()
+      })))
+    }
+    
     switch (dateFilter) {
       case 'today':
         return leads.filter(lead => {
-          const leadDate = new Date(lead.created_at || lead.created_time)
+          const dateStr = lead.created_at || lead.created_time
+          if (!dateStr) return false
+          const leadDate = new Date(dateStr)
+          // Check if date is valid
+          if (isNaN(leadDate.getTime())) return false
           return leadDate >= today
         })
       case 'last7days':
         const sevenDaysAgo = new Date(today)
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+        console.log('Filtering from:', sevenDaysAgo.toLocaleDateString())
         return leads.filter(lead => {
-          const leadDate = new Date(lead.created_at || lead.created_time)
+          const dateStr = lead.created_at || lead.created_time
+          if (!dateStr) return false
+          const leadDate = new Date(dateStr)
+          // Check if date is valid
+          if (isNaN(leadDate.getTime())) return false
           return leadDate >= sevenDaysAgo
         })
       case 'last30days':
         const thirtyDaysAgo = new Date(today)
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+        console.log('Filtering from:', thirtyDaysAgo.toLocaleDateString())
         return leads.filter(lead => {
-          const leadDate = new Date(lead.created_at || lead.created_time)
+          const dateStr = lead.created_at || lead.created_time
+          if (!dateStr) return false
+          const leadDate = new Date(dateStr)
+          // Check if date is valid
+          if (isNaN(leadDate.getTime())) return false
           return leadDate >= thirtyDaysAgo
         })
       case 'all':
@@ -187,7 +211,16 @@ export default function LeadsDashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Leads Dashboard</h1>
-              <p className="text-gray-600 mt-1">Manage your Food and Boutique leads with CRM features</p>
+              <p className="text-gray-600 mt-1">
+                {dateFilter === 'all' 
+                  ? 'Manage your Food and Boutique leads with CRM features'
+                  : dateFilter === 'today'
+                  ? `Showing today's leads (${new Date().toLocaleDateString()})`
+                  : dateFilter === 'last7days'
+                  ? `Showing leads from the last 7 days`
+                  : `Showing leads from the last 30 days`
+                }
+              </p>
             </div>
             <div className="flex items-center gap-4">
               {/* Date Filter */}
