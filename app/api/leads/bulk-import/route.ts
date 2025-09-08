@@ -38,7 +38,8 @@ export async function POST(request: NextRequest) {
         : null
       
       return {
-        google_sheet_id: `${lead._sheetSource}_row_${lead._rowNumber}_${lead.created_time || ''}`,
+        // Use phone number in ID to prevent duplicates when same lead is imported multiple times
+        google_sheet_id: `${lead._sheetSource}_${lead.phone_number?.replace(/\D/g, '') || lead._rowNumber}`,
         sheet_source: lead._sheetSource,
         row_number: lead._rowNumber,
         is_managed: markAsManaged,
