@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Phone, PhoneOff, AlertCircle, Calendar, MessageSquare, Target, CheckCircle } from 'lucide-react'
 import { ContactStatus, InterestLevel, NextAction, FollowUpPriority, LeadStage, LOST_REASONS } from '@/lib/types'
+import DemoScheduler from './DemoScheduler'
 
 interface ConditionalLeadFieldsProps {
   leadId: string
@@ -17,6 +18,12 @@ interface ConditionalLeadFieldsProps {
     leadStage?: LeadStage
     informationSent?: boolean
     waitingForResponse?: boolean
+    demo_date?: string
+    demo_time?: string
+    demo_type?: 'in_person' | 'online' | 'phone'
+    demo_location?: string
+    demo_notes?: string
+    demo_presenter?: string
   }
   onUpdate: (data: any) => Promise<void>
   isMobile?: boolean
@@ -40,6 +47,15 @@ export default function ConditionalLeadFields({
   const [currentStage, setCurrentStage] = useState<LeadStage>(initialData.leadStage || 'new')
   const [informationSent, setInformationSent] = useState(initialData.informationSent || false)
   const [waitingForResponse, setWaitingForResponse] = useState(initialData.waitingForResponse || false)
+  const [showDemoScheduler, setShowDemoScheduler] = useState(false)
+  const [demoDetails, setDemoDetails] = useState({
+    demo_date: initialData.demo_date || '',
+    demo_time: initialData.demo_time || '',
+    demo_type: initialData.demo_type || 'online' as 'in_person' | 'online' | 'phone',
+    demo_location: initialData.demo_location || '',
+    demo_notes: initialData.demo_notes || '',
+    demo_presenter: initialData.demo_presenter || ''
+  })
   
   // Update currentStage when initialData changes (e.g., after API update)
   useEffect(() => {
@@ -354,6 +370,13 @@ export default function ConditionalLeadFields({
   // Handle next action change with pipeline progression
   const handleNextActionChange = async (action: NextAction) => {
     setNextAction(action)
+    
+    // Open demo scheduler instead of directly updating
+    if (action === 'schedule_demo') {
+      setShowDemoScheduler(true)
+      return
+    }
+    
     setIsUpdating(true)
     
     // Initialize update data
@@ -364,9 +387,7 @@ export default function ConditionalLeadFields({
     // Determine if pipeline should advance based on action
     let newStage: LeadStage | undefined
     
-    if (action === 'schedule_demo') {
-      newStage = 'demo_scheduled'
-    } else if (action === 'send_information') {
+    if (action === 'send_information') {
       // Stay in current stage but mark as info sent and set waiting period
       setInformationSent(true)
       setWaitingForResponse(true)
@@ -612,11 +633,57 @@ export default function ConditionalLeadFields({
       <FollowUpScheduler />
       <NextActionSelector />
       
+      {/* Demo Details Display */}
+      {currentStage === 'demo_scheduled' && demoDetails.demo_date && (
+        <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-purple-900">📅 Demo Scheduled</p>
+            <div className="text-xs text-purple-700 space-y-1">
+              <p>Date: {new Date(demoDetails.demo_date + ' ' + demoDetails.demo_time).toLocaleString()}</p>
+              <p>Type: {demoDetails.demo_type?.replace('_', ' ')}</p>
+              {demoDetails.demo_location && <p>Location: {demoDetails.demo_location}</p>}
+              {demoDetails.demo_presenter && <p>Presenter: {demoDetails.demo_presenter}</p>}
+              {demoDetails.demo_notes && <p>Notes: {demoDetails.demo_notes}</p>}
+            </div>
+            <button
+              onClick={() => setShowDemoScheduler(true)}
+              className="text-xs text-purple-600 hover:text-purple-800 underline"
+            >
+              Reschedule Demo
+            </button>
+          </div>
+        </div>
+      )}
+      
       {isUpdating && (
         <div className="text-sm text-gray-500 text-center animate-pulse">
           Updating...
         </div>
       )}
+      
+      {/* Demo Scheduler Modal */}
+      <DemoScheduler
+        leadId={leadId}
+        initialData={demoDetails}
+        isOpen={showDemoScheduler}
+        onClose={() => setShowDemoScheduler(false)}
+        onSchedule={async (data) => {
+          setIsUpdating(true)
+          // Save demo details to additional_data
+          const updateData = {
+            ...data,
+            additional_data: {
+              ...data,
+              demo_scheduled_at: new Date().toISOString()
+            }
+          }
+          await onUpdate(updateData)
+          setDemoDetails(data)
+          setCurrentStage('demo_scheduled')
+          setIsUpdating(false)
+          setShowDemoScheduler(false)
+        }}
+      />
     </div>
   )
 }

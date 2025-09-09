@@ -353,7 +353,13 @@ export default function EnhancedLeadModal({
                     nextAction: leadData.next_action,
                     followUpDate: leadData.follow_up_date,
                     followUpPriority: leadData.follow_up_priority,
-                    leadStage: leadData.lead_stage
+                    leadStage: leadData.lead_stage,
+                    demo_date: leadData.additional_data?.demo_date,
+                    demo_time: leadData.additional_data?.demo_time,
+                    demo_type: leadData.additional_data?.demo_type,
+                    demo_location: leadData.additional_data?.demo_location,
+                    demo_notes: leadData.additional_data?.demo_notes,
+                    demo_presenter: leadData.additional_data?.demo_presenter
                   }}
                   onUpdate={handleFieldUpdate}
                   isMobile={isMobile}
