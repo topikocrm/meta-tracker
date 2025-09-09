@@ -170,7 +170,6 @@ export default function LeadDashboardStats({
             <span className={`font-bold ${
               selectedAgent === 'all' ? 'text-white' : 'text-blue-900'
             }`}>{leads.length}</span>
-            {getQualityDots(getAllAgentsQuality())}
           </button>
           
           {/* Individual agent pills */}
@@ -190,7 +189,6 @@ export default function LeadDashboardStats({
               <span className={`font-bold ${
                 selectedAgent === agent.userId ? 'text-white' : 'text-gray-900'
               }`}>{agent.count}</span>
-              {getQualityDots(agent.quality)}
             </button>
           ))}
         </div>
@@ -201,7 +199,8 @@ export default function LeadDashboardStats({
             <div className="text-xs text-gray-600 font-medium mb-2">
               {leadsPerAgent.find(a => a.userId === selectedAgent)?.userName || 'Selected Agent'} - Breakdown
             </div>
-            <div className="grid grid-cols-5 gap-2 text-xs">
+            {/* Stage Breakdown */}
+            <div className="grid grid-cols-5 gap-2 text-xs mb-3">
               {(() => {
                 const agent = leadsPerAgent.find(a => a.userId === selectedAgent)
                 if (!agent) return null
@@ -232,6 +231,36 @@ export default function LeadDashboardStats({
                 )
               })()}
             </div>
+            {/* Quality Breakdown */}
+            <div className="border-t pt-2">
+              <div className="grid grid-cols-4 gap-2 text-xs">
+                {(() => {
+                  const agent = leadsPerAgent.find(a => a.userId === selectedAgent)
+                  if (!agent) return null
+                  
+                  return (
+                    <>
+                      <div className="text-center">
+                        <div className="font-semibold text-red-600">{agent.quality['hot'] || 0}</div>
+                        <div className="text-gray-500">Hot</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-semibold text-orange-600">{agent.quality['warm'] || 0}</div>
+                        <div className="text-gray-500">Warm</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-semibold text-blue-600">{agent.quality['cool'] || 0}</div>
+                        <div className="text-gray-500">Cool</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-semibold text-gray-600">{agent.quality['cold'] || 0}</div>
+                        <div className="text-gray-500">Cold</div>
+                      </div>
+                    </>
+                  )
+                })()}
+              </div>
+            </div>
           </div>
         )}
         
@@ -239,7 +268,8 @@ export default function LeadDashboardStats({
         {selectedAgent === 'all' && (
           <div className="mt-4 p-3 bg-blue-50 rounded-lg">
             <div className="text-xs text-gray-600 font-medium mb-2">All Agents - Breakdown</div>
-            <div className="grid grid-cols-5 gap-2 text-xs">
+            {/* Stage Breakdown */}
+            <div className="grid grid-cols-5 gap-2 text-xs mb-3">
               <div className="text-center">
                 <div className="font-semibold text-gray-700">
                   {leads.filter(l => !l.lead_stage || l.lead_stage === 'new').length}
@@ -269,6 +299,35 @@ export default function LeadDashboardStats({
                   {leads.filter(l => l.lead_stage === 'won').length}
                 </div>
                 <div className="text-gray-500">Won</div>
+              </div>
+            </div>
+            {/* Quality Breakdown */}
+            <div className="border-t pt-2">
+              <div className="grid grid-cols-4 gap-2 text-xs">
+                <div className="text-center">
+                  <div className="font-semibold text-red-600">
+                    {leads.filter(l => l.lead_quality === 'hot').length}
+                  </div>
+                  <div className="text-gray-500">Hot</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-semibold text-orange-600">
+                    {leads.filter(l => l.lead_quality === 'warm').length}
+                  </div>
+                  <div className="text-gray-500">Warm</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-semibold text-blue-600">
+                    {leads.filter(l => l.lead_quality === 'cool').length}
+                  </div>
+                  <div className="text-gray-500">Cool</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-semibold text-gray-600">
+                    {leads.filter(l => l.lead_quality === 'cold' || !l.lead_quality).length}
+                  </div>
+                  <div className="text-gray-500">Cold</div>
+                </div>
               </div>
             </div>
           </div>
