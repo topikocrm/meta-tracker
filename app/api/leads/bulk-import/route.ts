@@ -20,22 +20,13 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Get available users for random assignment
-    let availableUsers: any[] = []
-    if (assignToRandom) {
-      const { data: users } = await supabase
-        .from('users')
-        .select('id')
-        .eq('is_active', true)
-      
-      availableUsers = users || []
-    }
+    // No longer doing auto-assignment - all leads default to unassigned
+    // The assignToRandom parameter is ignored, all leads will be unassigned
     
     // Prepare leads for bulk insert
     const leadsToInsert = leads.map((lead: any, index: number) => {
-      const assignedUser = assignToRandom && availableUsers.length > 0
-        ? availableUsers[index % availableUsers.length].id
-        : null
+      // Always set to null (unassigned)
+      const assignedUser = null
       
       return {
         // Use phone number in ID to prevent duplicates when same lead is imported multiple times

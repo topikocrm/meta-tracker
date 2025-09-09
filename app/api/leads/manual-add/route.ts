@@ -24,16 +24,8 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Get a random user to assign the lead to
-    const { data: users, error: usersError } = await supabase
-      .from('users')
-      .select('id')
-    
+    // No auto-assignment - all manually added leads default to unassigned
     let assignedUserId = null
-    if (users && users.length > 0) {
-      const randomIndex = Math.floor(Math.random() * users.length)
-      assignedUserId = users[randomIndex].id
-    }
     
     // Prepare lead data
     const leadData = {

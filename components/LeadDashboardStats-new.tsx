@@ -63,109 +63,155 @@ export default function LeadDashboardStats({
     }
   }
 
+  // Helper function to generate tooltip text
+  const getTooltipText = (agent: { stages: Record<string, number> }) => {
+    const contacted = agent.stages['contacted'] || 0
+    const qualified = agent.stages['qualified'] || 0
+    const lost = agent.stages['lost'] || 0
+    const won = agent.stages['won'] || 0
+    const newLeads = agent.stages['new'] || 0
+    
+    return `New: ${newLeads}\nContacted: ${contacted}\nQualified: ${qualified}\nLost: ${lost}\nWon: ${won}`
+  }
+
+  const getAllAgentsTooltip = () => {
+    const contacted = leads.filter(l => l.lead_stage === 'contacted').length
+    const qualified = leads.filter(l => l.lead_stage === 'qualified').length
+    const lost = leads.filter(l => l.lead_stage === 'lost').length
+    const won = leads.filter(l => l.lead_stage === 'won').length
+    const newLeads = leads.filter(l => !l.lead_stage || l.lead_stage === 'new').length
+    
+    return `New: ${newLeads}\nContacted: ${contacted}\nQualified: ${qualified}\nLost: ${lost}\nWon: ${won}`
+  }
+
   return (
     <div className="grid grid-cols-1 gap-6">
-      {/* Leads per Agent */}
+      {/* Leads per Agent - Compact View */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex items-center gap-3 mb-4">
           <Users className="h-5 w-5 text-blue-600" />
           <h3 className="text-lg font-semibold text-gray-900">Leads per Agent</h3>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        
+        {/* Compact agent pills */}
+        <div className="flex flex-wrap gap-2">
           {/* All Agents Option */}
-          <div 
-            className={`rounded-lg p-4 cursor-pointer transition-colors border-2 ${
-              selectedAgent === 'all' 
-                ? 'bg-blue-100 border-blue-400 shadow-md' 
-                : 'bg-blue-50 border-blue-200 hover:bg-blue-100'
-            }`}
+          <button
             onClick={() => handleAgentClick('all')}
+            title={getAllAgentsTooltip()}
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+              selectedAgent === 'all' 
+                ? 'bg-blue-600 text-white shadow-md transform scale-105' 
+                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+            }`}
           >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-700">
-                  All Agents
-                </span>
-              </div>
-              <div className="text-right">
-                <span className="text-xl font-bold text-blue-900">{leads.length}</span>
-                <p className="text-xs text-blue-600">total</p>
-              </div>
+            <Users className="h-3.5 w-3.5" />
+            <span>All Agents</span>
+            <span className={`font-bold ${
+              selectedAgent === 'all' ? 'text-white' : 'text-blue-900'
+            }`}>{leads.length}</span>
+          </button>
+          
+          {/* Individual agent pills */}
+          {leadsPerAgent.map((agent) => (
+            <button
+              key={agent.userId}
+              onClick={() => handleAgentClick(agent.userId)}
+              title={getTooltipText(agent)}
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                selectedAgent === agent.userId 
+                  ? 'bg-gray-700 text-white shadow-md transform scale-105' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <Users className="h-3.5 w-3.5" />
+              <span className="max-w-[120px] truncate">{agent.userName}</span>
+              <span className={`font-bold ${
+                selectedAgent === agent.userId ? 'text-white' : 'text-gray-900'
+              }`}>{agent.count}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Detailed breakdown for selected agent */}
+        {selectedAgent !== 'all' && (
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            <div className="text-xs text-gray-600 font-medium mb-2">
+              {leadsPerAgent.find(a => a.userId === selectedAgent)?.userName || 'Selected Agent'} - Breakdown
             </div>
-            <div className="space-y-1 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-blue-700">Contacted</span>
-                <span className="font-semibold text-blue-800">{leads.filter(l => l.lead_stage === 'contacted').length}</span>
+            <div className="grid grid-cols-5 gap-2 text-xs">
+              {(() => {
+                const agent = leadsPerAgent.find(a => a.userId === selectedAgent)
+                if (!agent) return null
+                
+                return (
+                  <>
+                    <div className="text-center">
+                      <div className="font-semibold text-gray-700">{agent.stages['new'] || 0}</div>
+                      <div className="text-gray-500">New</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-semibold text-blue-700">{agent.stages['contacted'] || 0}</div>
+                      <div className="text-gray-500">Contacted</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-semibold text-purple-700">{agent.stages['qualified'] || 0}</div>
+                      <div className="text-gray-500">Qualified</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-semibold text-red-700">{agent.stages['lost'] || 0}</div>
+                      <div className="text-gray-500">Lost</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-semibold text-green-700">{agent.stages['won'] || 0}</div>
+                      <div className="text-gray-500">Won</div>
+                    </div>
+                  </>
+                )
+              })()}
+            </div>
+          </div>
+        )}
+        
+        {/* Show breakdown for "All Agents" when selected */}
+        {selectedAgent === 'all' && (
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+            <div className="text-xs text-gray-600 font-medium mb-2">All Agents - Breakdown</div>
+            <div className="grid grid-cols-5 gap-2 text-xs">
+              <div className="text-center">
+                <div className="font-semibold text-gray-700">
+                  {leads.filter(l => !l.lead_stage || l.lead_stage === 'new').length}
+                </div>
+                <div className="text-gray-500">New</div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-blue-700">Qualified</span>
-                <span className="font-semibold text-purple-700">{leads.filter(l => l.lead_stage === 'qualified').length}</span>
+              <div className="text-center">
+                <div className="font-semibold text-blue-700">
+                  {leads.filter(l => l.lead_stage === 'contacted').length}
+                </div>
+                <div className="text-gray-500">Contacted</div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-blue-700">Lost</span>
-                <span className="font-semibold text-red-700">{leads.filter(l => l.lead_stage === 'lost').length}</span>
+              <div className="text-center">
+                <div className="font-semibold text-purple-700">
+                  {leads.filter(l => l.lead_stage === 'qualified').length}
+                </div>
+                <div className="text-gray-500">Qualified</div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-blue-700">Won</span>
-                <span className="font-semibold text-green-700">{leads.filter(l => l.lead_stage === 'won').length}</span>
+              <div className="text-center">
+                <div className="font-semibold text-red-700">
+                  {leads.filter(l => l.lead_stage === 'lost').length}
+                </div>
+                <div className="text-gray-500">Lost</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-green-700">
+                  {leads.filter(l => l.lead_stage === 'won').length}
+                </div>
+                <div className="text-gray-500">Won</div>
               </div>
             </div>
           </div>
-          {leadsPerAgent.map((agent) => {
-            const contactedCount = agent.stages['contacted'] || 0
-            const qualifiedCount = agent.stages['qualified'] || 0
-            const lostCount = agent.stages['lost'] || 0
-            const wonCount = agent.stages['won'] || 0
-            
-            return (
-              <div 
-                key={agent.userId} 
-                className={`rounded-lg p-4 cursor-pointer transition-colors border-2 ${
-                  selectedAgent === agent.userId 
-                    ? 'bg-gray-100 border-gray-400 shadow-md' 
-                    : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
-                }`}
-                onClick={() => handleAgentClick(agent.userId)}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm font-medium text-gray-700 truncate">
-                      {agent.userName}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xl font-bold text-gray-900">{agent.count}</span>
-                    <p className="text-xs text-gray-500">total</p>
-                  </div>
-                </div>
-                <div className="space-y-1 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Contacted</span>
-                    <span className="font-semibold text-blue-600">{contactedCount}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Qualified</span>
-                    <span className="font-semibold text-purple-600">{qualifiedCount}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Lost</span>
-                    <span className="font-semibold text-red-600">{lostCount}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Won</span>
-                    <span className="font-semibold text-green-600">{wonCount}</span>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
+        )}
       </div>
-
-      {/* Pipeline Stage Distribution would go here if needed */}
-      {/* Using the new lead_stage field instead of current_status */}
     </div>
   )
 }
