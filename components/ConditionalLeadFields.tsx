@@ -57,6 +57,20 @@ export default function ConditionalLeadFields({
     demo_presenter: initialData.demo_presenter || ''
   })
   
+  // Update demo details when initialData changes
+  useEffect(() => {
+    if (initialData.demo_date || initialData.demo_time) {
+      setDemoDetails({
+        demo_date: initialData.demo_date || '',
+        demo_time: initialData.demo_time || '',
+        demo_type: initialData.demo_type || 'online',
+        demo_location: initialData.demo_location || '',
+        demo_notes: initialData.demo_notes || '',
+        demo_presenter: initialData.demo_presenter || ''
+      })
+    }
+  }, [initialData.demo_date, initialData.demo_time, initialData.demo_type, initialData.demo_location, initialData.demo_notes, initialData.demo_presenter])
+  
   // Update currentStage when initialData changes (e.g., after API update)
   useEffect(() => {
     if (initialData.leadStage) {
@@ -669,13 +683,17 @@ export default function ConditionalLeadFields({
         onClose={() => setShowDemoScheduler(false)}
         onSchedule={async (data) => {
           setIsUpdating(true)
-          // Save demo details to additional_data
+          // Save demo details directly as fields and also in additional_data
           const updateData = {
-            ...data,
-            additional_data: {
-              ...data,
-              demo_scheduled_at: new Date().toISOString()
-            }
+            lead_stage: 'demo_scheduled',
+            next_action: 'conduct_demo',
+            demo_date: data.demo_date,
+            demo_time: data.demo_time,
+            demo_type: data.demo_type,
+            demo_location: data.demo_location,
+            demo_notes: data.demo_notes,
+            demo_presenter: data.demo_presenter,
+            demo_scheduled_at: new Date().toISOString()
           }
           await onUpdate(updateData)
           setDemoDetails(data)

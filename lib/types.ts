@@ -96,6 +96,15 @@ export interface Lead {
   days_in_stage?: number;
   pipeline_progress: number;
   
+  // Demo fields
+  demo_date?: string;
+  demo_time?: string;
+  demo_type?: 'online' | 'in_person' | 'phone';
+  demo_location?: string;
+  demo_notes?: string;
+  demo_presenter?: string;
+  demo_scheduled_at?: string;
+  
   // CRM fields
   assigned_to?: string;
   assigned_user?: {
