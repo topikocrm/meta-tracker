@@ -52,7 +52,7 @@ export default function BoutiqueLeadsPage() {
   const [sortField, setSortField] = useState<'created_time' | 'full_name' | 'current_status' | 'assigned_to' | 'lead_quality' | 'lead_stage'>('created_time')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
   const [showAddLeadModal, setShowAddLeadModal] = useState(false)
-  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'last7days' | 'last30days'>('all')
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'last7days' | 'last30days'>('today')
 
   useEffect(() => {
     fetchLeads()

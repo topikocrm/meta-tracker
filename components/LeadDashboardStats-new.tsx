@@ -27,26 +27,29 @@ export default function LeadDashboardStats({
   onStatusClick = () => {}
 }: LeadDashboardStatsProps) {
   
-  // Calculate leads per agent with stage breakdown
+  // Calculate leads per agent with stage and quality breakdown
   const leadsPerAgent = leads.reduce((acc, lead) => {
     const agentId = lead.assigned_to || 'unassigned'
     const agentName = lead.assigned_user?.name || 'Unassigned'
     const stage = lead.lead_stage || 'new'
+    const quality = lead.lead_quality || 'cold'
     
     const existing = acc.find(a => a.userId === agentId)
     if (existing) {
       existing.count++
       existing.stages[stage] = (existing.stages[stage] || 0) + 1
+      existing.quality[quality] = (existing.quality[quality] || 0) + 1
     } else {
       acc.push({ 
         userId: agentId, 
         userName: agentName, 
         count: 1,
-        stages: { [stage]: 1 }
+        stages: { [stage]: 1 },
+        quality: { [quality]: 1 }
       })
     }
     return acc
-  }, [] as { userId: string; userName: string; count: number; stages: Record<string, number> }[])
+  }, [] as { userId: string; userName: string; count: number; stages: Record<string, number>; quality: Record<string, number> }[])
   
   // Sort by count descending
   leadsPerAgent.sort((a, b) => b.count - a.count)
@@ -64,14 +67,56 @@ export default function LeadDashboardStats({
   }
 
   // Helper function to generate tooltip text
-  const getTooltipText = (agent: { stages: Record<string, number> }) => {
+  const getTooltipText = (agent: { stages: Record<string, number>; quality: Record<string, number> }) => {
     const contacted = agent.stages['contacted'] || 0
     const qualified = agent.stages['qualified'] || 0
     const lost = agent.stages['lost'] || 0
     const won = agent.stages['won'] || 0
     const newLeads = agent.stages['new'] || 0
     
-    return `New: ${newLeads}\nContacted: ${contacted}\nQualified: ${qualified}\nLost: ${lost}\nWon: ${won}`
+    const hot = agent.quality['hot'] || 0
+    const warm = agent.quality['warm'] || 0
+    const cool = agent.quality['cool'] || 0
+    const cold = agent.quality['cold'] || 0
+    
+    return `Stages:\nNew: ${newLeads}\nContacted: ${contacted}\nQualified: ${qualified}\nLost: ${lost}\nWon: ${won}\n\nQuality:\nHot: ${hot}\nWarm: ${warm}\nCool: ${cool}\nCold: ${cold}`
+  }
+  
+  // Helper function to get quality color dots
+  const getQualityDots = (quality: Record<string, number>) => {
+    const hot = quality['hot'] || 0
+    const warm = quality['warm'] || 0
+    const cool = quality['cool'] || 0
+    const cold = quality['cold'] || 0
+    
+    return (
+      <div className="flex items-center gap-0.5">
+        {hot > 0 && (
+          <div className="flex items-center">
+            <div className="w-1.5 h-1.5 bg-red-500 rounded-full" title={`${hot} hot`} />
+            {hot > 1 && <span className="text-[10px] ml-0.5 text-red-600">{hot}</span>}
+          </div>
+        )}
+        {warm > 0 && (
+          <div className="flex items-center">
+            <div className="w-1.5 h-1.5 bg-orange-500 rounded-full" title={`${warm} warm`} />
+            {warm > 1 && <span className="text-[10px] ml-0.5 text-orange-600">{warm}</span>}
+          </div>
+        )}
+        {cool > 0 && (
+          <div className="flex items-center">
+            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" title={`${cool} cool`} />
+            {cool > 1 && <span className="text-[10px] ml-0.5 text-blue-600">{cool}</span>}
+          </div>
+        )}
+        {cold > 0 && (
+          <div className="flex items-center">
+            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full" title={`${cold} cold`} />
+            {cold > 1 && <span className="text-[10px] ml-0.5 text-gray-600">{cold}</span>}
+          </div>
+        )}
+      </div>
+    )
   }
 
   const getAllAgentsTooltip = () => {
@@ -81,7 +126,22 @@ export default function LeadDashboardStats({
     const won = leads.filter(l => l.lead_stage === 'won').length
     const newLeads = leads.filter(l => !l.lead_stage || l.lead_stage === 'new').length
     
-    return `New: ${newLeads}\nContacted: ${contacted}\nQualified: ${qualified}\nLost: ${lost}\nWon: ${won}`
+    const hot = leads.filter(l => l.lead_quality === 'hot').length
+    const warm = leads.filter(l => l.lead_quality === 'warm').length
+    const cool = leads.filter(l => l.lead_quality === 'cool').length
+    const cold = leads.filter(l => l.lead_quality === 'cold' || !l.lead_quality).length
+    
+    return `Stages:\nNew: ${newLeads}\nContacted: ${contacted}\nQualified: ${qualified}\nLost: ${lost}\nWon: ${won}\n\nQuality:\nHot: ${hot}\nWarm: ${warm}\nCool: ${cool}\nCold: ${cold}`
+  }
+  
+  const getAllAgentsQuality = () => {
+    const quality: Record<string, number> = {
+      hot: leads.filter(l => l.lead_quality === 'hot').length,
+      warm: leads.filter(l => l.lead_quality === 'warm').length,
+      cool: leads.filter(l => l.lead_quality === 'cool').length,
+      cold: leads.filter(l => l.lead_quality === 'cold' || !l.lead_quality).length
+    }
+    return quality
   }
 
   return (
@@ -110,6 +170,7 @@ export default function LeadDashboardStats({
             <span className={`font-bold ${
               selectedAgent === 'all' ? 'text-white' : 'text-blue-900'
             }`}>{leads.length}</span>
+            {getQualityDots(getAllAgentsQuality())}
           </button>
           
           {/* Individual agent pills */}
@@ -129,6 +190,7 @@ export default function LeadDashboardStats({
               <span className={`font-bold ${
                 selectedAgent === agent.userId ? 'text-white' : 'text-gray-900'
               }`}>{agent.count}</span>
+              {getQualityDots(agent.quality)}
             </button>
           ))}
         </div>

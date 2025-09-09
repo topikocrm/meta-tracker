@@ -54,7 +54,7 @@ export default function LeadsDashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [newLeadsCount, setNewLeadsCount] = useState({ food: 0, boutique: 0 })
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
-  const [dateFilter, setDateFilter] = useState<DateFilter>('all')
+  const [dateFilter, setDateFilter] = useState<DateFilter>('today')
   const [unfilteredStats, setUnfilteredStats] = useState<DashboardStats>({
     food: { total: 0, new: 0, contacted: 0, qualified: 0, demo: 0, trial: 0, won: 0, lost: 0, hot: 0, warm: 0, cool: 0, cold: 0 },
     boutique: { total: 0, new: 0, contacted: 0, qualified: 0, demo: 0, trial: 0, won: 0, lost: 0, hot: 0, warm: 0, cool: 0, cold: 0 }
