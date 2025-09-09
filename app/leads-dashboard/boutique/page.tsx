@@ -177,7 +177,7 @@ export default function BoutiqueLeadsPage() {
   const filterByDate = (lead: Lead) => {
     if (dateFilter === 'all') return true
     
-    const dateStr = lead.created_time || lead.created_at
+    const dateStr = lead.created_time
     if (!dateStr) return false
     
     const leadDate = new Date(dateStr)
