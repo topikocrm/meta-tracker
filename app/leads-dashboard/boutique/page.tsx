@@ -208,7 +208,11 @@ export default function BoutiqueLeadsPage() {
     }
   }
 
-  const filteredLeads = managedLeads.filter(lead => {
+  // Apply date filter first for statistics
+  const dateFilteredLeads = managedLeads.filter(lead => filterByDate(lead))
+  
+  // Then apply all filters for the table view
+  const filteredLeads = dateFilteredLeads.filter(lead => {
     const matchesSearch = !searchQuery || 
       lead.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       lead.phone_number?.includes(searchQuery) ||
@@ -219,7 +223,7 @@ export default function BoutiqueLeadsPage() {
       (assigneeFilter === 'unassigned' && !lead.assigned_to) ||
       lead.assigned_to === assigneeFilter
     
-    const matchesDate = filterByDate(lead)
+    // Date filter already applied above
     
     // Debug logging to help identify status mismatch issues
     if (statusFilter !== 'all' && !matchesStatus) {
@@ -231,7 +235,7 @@ export default function BoutiqueLeadsPage() {
       })
     }
     
-    return matchesSearch && matchesStatus && matchesAssignee && matchesDate
+    return matchesSearch && matchesStatus && matchesAssignee
   }).sort((a, b) => {
     let aValue: any = a[sortField]
     let bValue: any = b[sortField]
@@ -434,7 +438,7 @@ export default function BoutiqueLeadsPage() {
 
         {/* Dashboard Statistics */}
         <LeadDashboardStats 
-          leads={managedLeads} 
+          leads={dateFilteredLeads} 
           selectedAgent={assigneeFilter}
           onAgentClick={(agentId) => {
             setAssigneeFilter(agentId)
