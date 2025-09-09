@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, RefreshCw, Phone, MessageSquare, Search, Filter, Download, UserPlus, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, Loader, Plus } from 'lucide-react'
+import { ArrowLeft, RefreshCw, Phone, MessageSquare, Search, Filter, Download, UserPlus, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, Loader, Plus, Calendar } from 'lucide-react'
 import LeadQualityBadge from '@/components/LeadQualityBadge'
 import PipelineStageTracker from '@/components/PipelineStageTracker'
 import EnhancedLeadModal from '@/components/EnhancedLeadModal'
@@ -52,6 +52,7 @@ export default function FoodLeadsPage() {
   const [sortField, setSortField] = useState<'created_time' | 'full_name' | 'current_status' | 'assigned_to' | 'lead_quality' | 'lead_stage'>('created_time')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
   const [showAddLeadModal, setShowAddLeadModal] = useState(false)
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'last7days' | 'last30days'>('all')
 
   useEffect(() => {
     fetchLeads()
@@ -172,6 +173,41 @@ export default function FoodLeadsPage() {
     }
   }
 
+  // Date filtering function
+  const filterByDate = (lead: Lead) => {
+    if (dateFilter === 'all') return true
+    
+    const dateStr = lead.created_time || lead.created_at
+    if (!dateStr) return false
+    
+    const leadDate = new Date(dateStr)
+    if (isNaN(leadDate.getTime())) return false
+    
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    today.setHours(0, 0, 0, 0)
+    
+    const leadDateStart = new Date(leadDate.getFullYear(), leadDate.getMonth(), leadDate.getDate())
+    leadDateStart.setHours(0, 0, 0, 0)
+    
+    switch (dateFilter) {
+      case 'today':
+        return leadDateStart >= today
+      case 'last7days':
+        const sevenDaysAgo = new Date()
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+        sevenDaysAgo.setHours(0, 0, 0, 0)
+        return leadDateStart >= sevenDaysAgo
+      case 'last30days':
+        const thirtyDaysAgo = new Date()
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+        thirtyDaysAgo.setHours(0, 0, 0, 0)
+        return leadDateStart >= thirtyDaysAgo
+      default:
+        return true
+    }
+  }
+
   const filteredLeads = managedLeads.filter(lead => {
     const matchesSearch = !searchQuery || 
       lead.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -183,6 +219,8 @@ export default function FoodLeadsPage() {
       (assigneeFilter === 'unassigned' && !lead.assigned_to) ||
       lead.assigned_to === assigneeFilter
     
+    const matchesDate = filterByDate(lead)
+    
     // Debug logging to help identify status mismatch issues
     if (statusFilter !== 'all' && !matchesStatus) {
       console.log('Status mismatch:', {
@@ -193,7 +231,7 @@ export default function FoodLeadsPage() {
       })
     }
     
-    return matchesSearch && matchesStatus && matchesAssignee
+    return matchesSearch && matchesStatus && matchesAssignee && matchesDate
   }).sort((a, b) => {
     let aValue: any = a[sortField]
     let bValue: any = b[sortField]
@@ -285,6 +323,56 @@ export default function FoodLeadsPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Date Filter */}
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setDateFilter('all')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                dateFilter === 'all' 
+                  ? 'bg-white text-blue-600 shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              All Time
+            </button>
+            <button
+              onClick={() => setDateFilter('today')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                dateFilter === 'today' 
+                  ? 'bg-white text-blue-600 shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Today
+            </button>
+            <button
+              onClick={() => setDateFilter('last7days')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                dateFilter === 'last7days' 
+                  ? 'bg-white text-blue-600 shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Last 7 Days
+            </button>
+            <button
+              onClick={() => setDateFilter('last30days')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                dateFilter === 'last30days' 
+                  ? 'bg-white text-blue-600 shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Last 30 Days
+            </button>
+          </div>
+          <div className="text-sm text-gray-500">
+            Showing {filteredLeads.length} of {managedLeads.length} leads
+            {dateFilter !== 'all' && ` (${dateFilter === 'today' ? "Today's" : dateFilter === 'last7days' ? 'Last 7 Days' : 'Last 30 Days'})`}
+          </div>
+        </div>
+
         {/* New Leads Alert */}
         {newLeads.length > 0 && (
           <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -347,6 +435,7 @@ export default function FoodLeadsPage() {
         {/* Dashboard Statistics */}
         <LeadDashboardStats 
           leads={managedLeads} 
+          selectedAgent={assigneeFilter}
           onAgentClick={(agentId) => {
             setAssigneeFilter(agentId)
           }}

@@ -15,12 +15,14 @@ interface Lead {
 
 interface LeadDashboardStatsProps {
   leads: Lead[]
+  selectedAgent?: string
   onAgentClick?: (agentId: string) => void
   onStatusClick?: (status: string) => void
 }
 
 export default function LeadDashboardStats({ 
   leads = [], 
+  selectedAgent = 'all',
   onAgentClick = () => {},
   onStatusClick = () => {}
 }: LeadDashboardStatsProps) {
@@ -72,7 +74,11 @@ export default function LeadDashboardStats({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {/* All Agents Option */}
           <div 
-            className="bg-blue-50 rounded-lg p-4 cursor-pointer hover:bg-blue-100 transition-colors border-2 border-blue-200"
+            className={`rounded-lg p-4 cursor-pointer transition-colors border-2 ${
+              selectedAgent === 'all' 
+                ? 'bg-blue-100 border-blue-400 shadow-md' 
+                : 'bg-blue-50 border-blue-200 hover:bg-blue-100'
+            }`}
             onClick={() => handleAgentClick('all')}
           >
             <div className="flex items-center justify-between mb-3">
@@ -115,7 +121,11 @@ export default function LeadDashboardStats({
             return (
               <div 
                 key={agent.userId} 
-                className="bg-gray-50 rounded-lg p-4 cursor-pointer hover:bg-gray-100 transition-colors"
+                className={`rounded-lg p-4 cursor-pointer transition-colors border-2 ${
+                  selectedAgent === agent.userId 
+                    ? 'bg-gray-100 border-gray-400 shadow-md' 
+                    : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                }`}
                 onClick={() => handleAgentClick(agent.userId)}
               >
                 <div className="flex items-center justify-between mb-3">
