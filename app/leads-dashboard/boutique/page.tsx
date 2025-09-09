@@ -218,7 +218,11 @@ export default function BoutiqueLeadsPage() {
       lead.phone_number?.includes(searchQuery) ||
       lead.email?.toLowerCase().includes(searchQuery.toLowerCase())
     
-    const matchesStatus = statusFilter === 'all' || lead.current_status === statusFilter
+    // Check both current_status and lead_stage for filtering
+    const matchesStatus = statusFilter === 'all' || 
+      lead.current_status === statusFilter || 
+      lead.lead_stage === statusFilter ||
+      (statusFilter === 'demo' && (lead.lead_stage === 'demo_scheduled' || lead.lead_stage === 'demo_completed'))
     const matchesAssignee = assigneeFilter === 'all' || 
       (assigneeFilter === 'unassigned' && !lead.assigned_to) ||
       lead.assigned_to === assigneeFilter
@@ -472,11 +476,14 @@ export default function BoutiqueLeadsPage() {
               <option value="all">All Status</option>
               <option value="new">New</option>
               <option value="contacted">Contacted</option>
-              <option value="interested">Interested</option>
-              <option value="demo">Demo</option>
-              <option value="negotiation">Negotiation</option>
+              <option value="qualified">Qualified</option>
+              <option value="demo">Demo (Scheduled/Completed)</option>
+              <option value="demo_scheduled">Demo Scheduled</option>
+              <option value="demo_completed">Demo Completed</option>
+              <option value="trial_started">Trial Started</option>
               <option value="won">Won</option>
               <option value="lost">Lost</option>
+              <option value="nurturing">Nurturing</option>
             </select>
             
             <select
