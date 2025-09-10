@@ -64,13 +64,7 @@ export default function AddLeadModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          sheet_source: sheetSource,
-          is_managed: true,
-          lead_stage: 'new',
-          lead_quality: 'warm',
-          created_time: new Date().toISOString(),
-          row_number: null,
-          manually_added: true
+          sheet_source: sheetSource
         })
       })
       

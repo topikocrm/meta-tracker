@@ -27,10 +27,16 @@ export async function POST(request: NextRequest) {
     // No auto-assignment - all manually added leads default to unassigned
     let assignedUserId = null
     
+    // Generate a unique ID for manually added leads
+    const timestamp = Date.now()
+    const phoneDigits = body.phone_number.replace(/\D/g, '')
+    const uniqueId = `${body.sheet_source}_manual_${phoneDigits}_${timestamp}`
+    
     // Prepare lead data
-    const leadData = {
+    const leadData: any = {
+      google_sheet_id: uniqueId, // Unique ID to prevent duplicates
       full_name: body.full_name,
-      phone_number: body.phone_number.replace(/\D/g, ''), // Remove non-digits
+      phone_number: phoneDigits, // Already cleaned
       email: body.email || null,
       business_name: body.business_name || null,
       address: body.address || null,
@@ -45,12 +51,13 @@ export async function POST(request: NextRequest) {
       created_time: new Date().toISOString(),
       row_number: null,
       assigned_to: assignedUserId,
-      manually_added: true,
-      additional_data: {
+      // Store additional info in tool_requirement as JSON string
+      tool_requirement: JSON.stringify({
         source: 'manual',
         added_by: 'user',
-        added_at: new Date().toISOString()
-      }
+        added_at: new Date().toISOString(),
+        manually_added: true
+      })
     }
     
     // Insert the lead
@@ -63,7 +70,11 @@ export async function POST(request: NextRequest) {
     if (insertError) {
       console.error('Error inserting lead:', insertError)
       return NextResponse.json(
-        { success: false, error: 'Failed to add lead to database' },
+        { 
+          success: false, 
+          error: insertError.message || 'Failed to add lead to database',
+          details: insertError 
+        },
         { status: 500 }
       )
     }
