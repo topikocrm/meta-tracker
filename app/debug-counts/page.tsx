@@ -25,7 +25,7 @@ export default function DebugCountsPage() {
         const boutiqueResponse = await fetch('/api/leads/simple?source=sheet_2_boutique&limit=1000')
         const boutiqueData = await boutiqueResponse.json()
         
-        const result = {
+        const result: any = {
           simpleAPI: {
             managedOnly: simpleData,
             all: allData
