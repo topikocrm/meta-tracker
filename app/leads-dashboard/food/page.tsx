@@ -28,6 +28,7 @@ interface Lead {
   interest_level?: string
   pipeline_progress?: number
   assigned_user?: {
+    id: string
     name: string
     email: string
   }
