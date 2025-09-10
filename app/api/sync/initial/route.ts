@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
             google_sheet_id,
             sheet_source: sheet.source,
             row_number: rowNumber,
-            is_managed: false, // Initial sync marks as not managed
+            is_managed: true, // Mark as managed by default so they show in dashboards
             current_status: 'new'
           }
           
