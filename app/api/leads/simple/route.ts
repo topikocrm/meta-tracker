@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
     
     const limit = parseInt(searchParams.get('limit') || '1000')
     const source = searchParams.get('source')
+    const includeUnmanaged = searchParams.get('include_unmanaged') === 'true'
     
     let query = supabase
       .from('leads')
@@ -18,6 +19,11 @@ export async function GET(request: NextRequest) {
       `)
       .order('created_time', { ascending: false })
       .limit(limit)
+    
+    // Filter for managed leads by default (unless explicitly requested)
+    if (!includeUnmanaged) {
+      query = query.eq('is_managed', true)
+    }
     
     if (source) {
       query = query.eq('sheet_source', source)
@@ -30,10 +36,18 @@ export async function GET(request: NextRequest) {
       throw error
     }
     
+    // Log for debugging
+    console.log(`[API /leads/simple] Fetched ${leads?.length || 0} leads for source: ${source || 'all'}, managed only: ${!includeUnmanaged}`)
+    
     return NextResponse.json({
       success: true,
       leads: leads || [],
-      count: leads?.length || 0
+      count: leads?.length || 0,
+      metadata: {
+        source,
+        managed_only: !includeUnmanaged,
+        total: leads?.length || 0
+      }
     })
     
   } catch (error) {

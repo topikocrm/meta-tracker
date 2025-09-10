@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { filterByDateRange, getLeadDate, logLeadDataIssues } from '@/lib/lead-utils'
 import { ArrowLeft, RefreshCw, Phone, MessageSquare, Search, Filter, Download, UserPlus, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, Loader, Plus, Calendar } from 'lucide-react'
 import LeadQualityBadge from '@/components/LeadQualityBadge'
 import PipelineStageTracker from '@/components/PipelineStageTracker'
@@ -74,15 +75,15 @@ export default function FoodLeadsPage() {
       }
       
       if (data.success) {
-        // Filter for managed leads only
-        const managed = (data.leads || []).filter((l: any) => l.is_managed !== false)
+        const leads = data.leads || []
         
-        // Debug: Log unique statuses to help identify filtering issues
-        const uniqueStatuses = [...new Set(managed.map((l: any) => l.current_status))].filter(Boolean)
-        console.log('Unique lead statuses in data:', uniqueStatuses)
-        console.log('Total managed leads:', managed.length)
+        // Log data issues
+        logLeadDataIssues(leads, 'Food Page')
         
-        setManagedLeads(managed)
+        // Note: API now returns only managed leads by default
+        console.log('[Food Page] Received', leads.length, 'managed leads from API')
+        
+        setManagedLeads(leads)
       }
     } catch (error) {
       console.error('Failed to fetch leads:', error)
@@ -173,39 +174,10 @@ export default function FoodLeadsPage() {
     }
   }
 
-  // Date filtering function
+  // Use shared date filtering
   const filterByDate = (lead: Lead) => {
-    if (dateFilter === 'all') return true
-    
-    const dateStr = lead.created_time
-    if (!dateStr) return false
-    
-    const leadDate = new Date(dateStr)
-    if (isNaN(leadDate.getTime())) return false
-    
-    const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    today.setHours(0, 0, 0, 0)
-    
-    const leadDateStart = new Date(leadDate.getFullYear(), leadDate.getMonth(), leadDate.getDate())
-    leadDateStart.setHours(0, 0, 0, 0)
-    
-    switch (dateFilter) {
-      case 'today':
-        return leadDateStart >= today
-      case 'last7days':
-        const sevenDaysAgo = new Date()
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-        sevenDaysAgo.setHours(0, 0, 0, 0)
-        return leadDateStart >= sevenDaysAgo
-      case 'last30days':
-        const thirtyDaysAgo = new Date()
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-        thirtyDaysAgo.setHours(0, 0, 0, 0)
-        return leadDateStart >= thirtyDaysAgo
-      default:
-        return true
-    }
+    const filtered = filterByDateRange([lead], dateFilter)
+    return filtered.length > 0
   }
 
   // Apply date filter first for statistics

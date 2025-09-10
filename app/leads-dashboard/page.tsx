@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Users, ShoppingBag, TrendingUp, Clock, CheckCircle, XCircle, AlertCircle, ArrowRight, RefreshCw, Loader, Calendar } from 'lucide-react'
+import { calculateLeadStats, logLeadDataIssues } from '@/lib/lead-utils'
 
 interface DashboardStats {
   food: {
@@ -81,6 +82,9 @@ export default function LeadsDashboardPage() {
       if (data.success) {
         const leads = data.leads || []
         
+        // Log data issues for debugging
+        logLeadDataIssues(leads, 'Main Dashboard')
+        
         // Calculate stats for each source
         const foodLeads = leads.filter((l: any) => l.sheet_source === 'sheet_1_food')
         const boutiqueLeads = leads.filter((l: any) => l.sheet_source === 'sheet_2_boutique')
@@ -97,11 +101,13 @@ export default function LeadsDashboardPage() {
         const foodStats = calculateStats(foodLeads, true)
         const boutiqueStats = calculateStats(boutiqueLeads, true)
         
-        console.log('Filter:', dateFilter)
-        console.log('Unfiltered Food Total:', unfilteredFoodStats.total)
-        console.log('Filtered Food Total:', foodStats.total)
-        console.log('Unfiltered Boutique Total:', unfilteredBoutiqueStats.total)
-        console.log('Filtered Boutique Total:', boutiqueStats.total)
+        console.log('[Main Dashboard] Stats calculated:', {
+          dateFilter,
+          foodTotal: foodStats.total,
+          boutiqueTotal: boutiqueStats.total,
+          unfilteredFoodTotal: unfilteredFoodStats.total,
+          unfilteredBoutiqueTotal: unfilteredBoutiqueStats.total
+        })
         
         setStats({
           food: foodStats,
@@ -226,26 +232,8 @@ export default function LeadsDashboardPage() {
   }
 
   const calculateStats = (leads: any[], applyDateFilter: boolean = true) => {
-    // All leads with is_managed=true are considered managed, regardless of status
-    const managedLeads = leads.filter(l => l.is_managed !== false)
-    const filteredLeads = applyDateFilter ? filterLeadsByDate(managedLeads) : managedLeads
-    
-    return {
-      total: filteredLeads.length,
-      // Pipeline stages
-      new: filteredLeads.filter(l => !l.lead_stage || l.lead_stage === 'new').length,
-      contacted: filteredLeads.filter(l => l.lead_stage === 'contacted').length,
-      qualified: filteredLeads.filter(l => l.lead_stage === 'qualified').length,
-      demo: filteredLeads.filter(l => l.lead_stage === 'demo_scheduled' || l.lead_stage === 'demo_completed').length,
-      trial: filteredLeads.filter(l => l.lead_stage === 'trial_started').length,
-      won: filteredLeads.filter(l => l.lead_stage === 'won').length,
-      lost: filteredLeads.filter(l => l.lead_stage === 'lost').length,
-      // Lead quality
-      hot: filteredLeads.filter(l => l.lead_quality === 'hot').length,
-      warm: filteredLeads.filter(l => l.lead_quality === 'warm').length,
-      cool: filteredLeads.filter(l => l.lead_quality === 'cool').length,
-      cold: filteredLeads.filter(l => l.lead_quality === 'cold').length
-    }
+    const filter = applyDateFilter ? dateFilter : 'all'
+    return calculateLeadStats(leads, filter)
   }
 
   const handleRefresh = () => {
