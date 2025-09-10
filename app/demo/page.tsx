@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { Lead, LeadStatus } from '@/types/database'
 import LeadTable from '@/components/LeadTable'
 import LeadFilters from '@/components/LeadFilters'
-import DashboardStats from '@/components/DashboardStats'
 import { generateMockLeads } from '@/lib/mock-data'
 import { RefreshCw } from 'lucide-react'
 
@@ -112,7 +111,11 @@ export default function DemoPage() {
           <p className="mt-2 text-gray-600">Demo version - Explore all features with sample data</p>
         </div>
 
-        <DashboardStats leads={leads} />
+        {/* Dashboard stats removed - component no longer exists */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <h2 className="text-lg font-semibold mb-2">Demo Mode</h2>
+          <p className="text-gray-600">Showing {filteredLeads.length} of {leads.length} demo leads</p>
+        </div>
 
         <div className="mt-8 bg-white rounded-lg shadow">
           <div className="p-6 border-b border-gray-200">
