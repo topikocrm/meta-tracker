@@ -45,6 +45,11 @@ export async function POST(request: NextRequest) {
         id: process.env.GOOGLE_SHEET_ID_2 || '1VtAPMBX0f6YhVYNbWOIvTWPmudu1qiQAP6vHgcJNtU0',
         name: 'Boutique Leads',
         source: 'sheet_2_boutique'
+      },
+      { 
+        id: process.env.GOOGLE_SHEET_ID_3 || '1hhkIv4SP_CmP9KRusCd3oaDF9dmhIWwCGZx98wCXTM0',
+        name: 'Services Leads',
+        source: 'sheet_3_services'
       }
     ]
 

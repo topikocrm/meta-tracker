@@ -25,6 +25,10 @@ export default function DebugCountsPage() {
         const boutiqueResponse = await fetch('/api/leads/simple?source=sheet_2_boutique&limit=1000')
         const boutiqueData = await boutiqueResponse.json()
         
+        // Fetch services specific
+        const servicesResponse = await fetch('/api/leads/simple?source=sheet_3_services&limit=1000')
+        const servicesData = await servicesResponse.json()
+        
         const result: any = {
           simpleAPI: {
             managedOnly: simpleData,
@@ -32,7 +36,8 @@ export default function DebugCountsPage() {
           },
           bySource: {
             food: foodData,
-            boutique: boutiqueData
+            boutique: boutiqueData,
+            services: servicesData
           }
         }
         
@@ -115,8 +120,10 @@ export default function DebugCountsPage() {
             managed_undefined: managedUndefined.length,
             foodTotal: allLeads.filter((l: any) => l.sheet_source === 'sheet_1_food').length,
             boutiqueTotal: allLeads.filter((l: any) => l.sheet_source === 'sheet_2_boutique').length,
+            servicesTotal: allLeads.filter((l: any) => l.sheet_source === 'sheet_3_services').length,
             foodManaged: allLeads.filter((l: any) => l.sheet_source === 'sheet_1_food' && l.is_managed === true).length,
-            boutiqueManaged: allLeads.filter((l: any) => l.sheet_source === 'sheet_2_boutique' && l.is_managed === true).length
+            boutiqueManaged: allLeads.filter((l: any) => l.sheet_source === 'sheet_2_boutique' && l.is_managed === true).length,
+            servicesManaged: allLeads.filter((l: any) => l.sheet_source === 'sheet_3_services' && l.is_managed === true).length
           }
         }
         
@@ -167,6 +174,8 @@ export default function DebugCountsPage() {
                 Food Managed: {data.unmanagedAnalysis.foodManaged}
                 Boutique Total: {data.unmanagedAnalysis.boutiqueTotal}
                 Boutique Managed: {data.unmanagedAnalysis.boutiqueManaged}
+                Services Total: {data.unmanagedAnalysis.servicesTotal}
+                Services Managed: {data.unmanagedAnalysis.servicesManaged}
               </pre>
             </div>
           </div>
@@ -210,7 +219,7 @@ export default function DebugCountsPage() {
       {data?.bySource && (
         <div className="mb-8 bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">API Responses by Source</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <h3 className="font-semibold mb-2">Food API Response</h3>
               <pre className="bg-gray-100 p-3 rounded text-sm">
@@ -225,6 +234,14 @@ export default function DebugCountsPage() {
                 Success: {data.bySource.boutique.success ? 'Yes' : 'No'}
                 Count: {data.bySource.boutique.count}
                 Metadata: {JSON.stringify(data.bySource.boutique.metadata, null, 2)}
+              </pre>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-2">Services API Response</h3>
+              <pre className="bg-gray-100 p-3 rounded text-sm">
+                Success: {data.bySource.services?.success ? 'Yes' : 'No'}
+                Count: {data.bySource.services?.count || 0}
+                Metadata: {JSON.stringify(data.bySource.services?.metadata, null, 2)}
               </pre>
             </div>
           </div>

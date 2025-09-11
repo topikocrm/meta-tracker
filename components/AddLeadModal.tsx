@@ -110,7 +110,7 @@ export default function AddLeadModal({
           <div className="flex items-center gap-3">
             <UserPlus className="h-6 w-6 text-blue-600" />
             <h2 className="text-xl font-semibold text-gray-900">
-              Add New {sheetSource === 'sheet_1_food' ? 'Food' : 'Boutique'} Lead
+              Add New {sheetSource === 'sheet_1_food' ? 'Food' : sheetSource === 'sheet_2_boutique' ? 'Boutique' : 'Services'} Lead
             </h2>
           </div>
           <button
