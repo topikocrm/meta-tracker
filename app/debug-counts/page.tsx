@@ -174,8 +174,8 @@ export default function DebugCountsPage() {
                 Food Managed: {data.unmanagedAnalysis.foodManaged}
                 Boutique Total: {data.unmanagedAnalysis.boutiqueTotal}
                 Boutique Managed: {data.unmanagedAnalysis.boutiqueManaged}
-                Services Total: {data.unmanagedAnalysis.servicesTotal}
-                Services Managed: {data.unmanagedAnalysis.servicesManaged}
+                Generic Campaign-1 Total: {data.unmanagedAnalysis.servicesTotal}
+                Generic Campaign-1 Managed: {data.unmanagedAnalysis.servicesManaged}
               </pre>
             </div>
           </div>
@@ -237,7 +237,7 @@ export default function DebugCountsPage() {
               </pre>
             </div>
             <div>
-              <h3 className="font-semibold mb-2">Services API Response</h3>
+              <h3 className="font-semibold mb-2">Generic Campaign-1 API Response</h3>
               <pre className="bg-gray-100 p-3 rounded text-sm">
                 Success: {data.bySource.services?.success ? 'Yes' : 'No'}
                 Count: {data.bySource.services?.count || 0}

@@ -37,7 +37,7 @@ interface Lead {
   _rowNumber?: number
 }
 
-export default function GenericCampaign1Page() {
+export default function TeluguLeadsPage() {
   const router = useRouter()
   const [managedLeads, setManagedLeads] = useState<Lead[]>([])
   const [newLeads, setNewLeads] = useState<any[]>([])
@@ -66,12 +66,12 @@ export default function GenericCampaign1Page() {
     setIsLoading(true)
     try {
       // Try simple endpoint first
-      let response = await fetch('/api/leads/simple?source=sheet_3_services&limit=1000')
+      let response = await fetch('/api/leads/simple?source=sheet_4_telugu&limit=1000')
       let data = await response.json()
       
       // Fallback to regular endpoint if simple fails
       if (!data.success) {
-        response = await fetch('/api/leads?source=sheet_3_services&limit=1000')
+        response = await fetch('/api/leads?source=sheet_4_telugu&limit=1000')
         data = await response.json()
       }
       
@@ -79,10 +79,10 @@ export default function GenericCampaign1Page() {
         const leads = data.leads || []
         
         // Log data issues
-        logLeadDataIssues(leads, 'Generic Campaign-1 Page')
+        logLeadDataIssues(leads, 'Telugu 4999 Page')
         
         // Note: API now returns only managed leads by default
-        console.log('[Generic Campaign-1 Page] Received', leads.length, 'managed leads from API')
+        console.log('[Telugu 4999 Page] Received', leads.length, 'managed leads from API')
         
         setManagedLeads(leads)
       }
@@ -110,9 +110,9 @@ export default function GenericCampaign1Page() {
       const data = await response.json()
       
       if (data.success) {
-        const servicesSheet = data.sheets?.find((s: any) => s.source === 'sheet_3_services')
-        if (servicesSheet) {
-          setNewLeads(servicesSheet.leads || [])
+        const teluguSheet = data.sheets?.find((s: any) => s.source === 'sheet_4_telugu')
+        if (teluguSheet) {
+          setNewLeads(teluguSheet.leads || [])
         }
       }
     } catch (error) {
@@ -200,6 +200,18 @@ export default function GenericCampaign1Page() {
       (assigneeFilter === 'unassigned' && !lead.assigned_to) ||
       lead.assigned_to === assigneeFilter
     
+    // Date filter already applied above
+    
+    // Debug logging to help identify status mismatch issues
+    if (statusFilter !== 'all' && !matchesStatus) {
+      console.log('Status mismatch:', {
+        leadName: lead.full_name,
+        leadStatus: lead.current_status,
+        filterStatus: statusFilter,
+        statusType: typeof lead.current_status
+      })
+    }
+    
     return matchesSearch && matchesStatus && matchesAssignee
   }).sort((a, b) => {
     let aValue: any = a[sortField]
@@ -247,7 +259,7 @@ export default function GenericCampaign1Page() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Loading Overlay */}
-      {isLoading && <LoadingOverlay fullScreen message="Loading Generic Campaign-1 Leads..." />}
+      {isLoading && <LoadingOverlay fullScreen message="Loading Telugu 4999 Leads..." />}
       {isImporting && <LoadingOverlay fullScreen message={`Importing ${newLeads.length} leads...`} />}
       
       {/* Header */}
@@ -262,8 +274,8 @@ export default function GenericCampaign1Page() {
                 <ArrowLeft className="h-5 w-5" />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Generic Campaign-1</h1>
-                <p className="text-sm text-gray-600">Marketing Campaign Leads</p>
+                <h1 className="text-2xl font-bold text-gray-900">Telugu 4999 Leads</h1>
+                <p className="text-sm text-gray-600">Telugu 4999 Business Leads</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -650,7 +662,7 @@ export default function GenericCampaign1Page() {
       <AddLeadModal
         isOpen={showAddLeadModal}
         onClose={() => setShowAddLeadModal(false)}
-        sheetSource="sheet_3_services"
+        sheetSource="sheet_4_telugu"
         onLeadAdded={() => {
           fetchLeads()
           setShowAddLeadModal(false)

@@ -157,7 +157,7 @@ export default function EnhancedLeadModal({
               <p className="text-blue-100 text-xs sm:text-sm">
                 {leadData.sheet_source === 'sheet_1_food' ? 'Food Lead' : 
                  leadData.sheet_source === 'sheet_2_boutique' ? 'Boutique Lead' : 
-                 'Services Lead'}
+                 'Generic Campaign-1 Lead'}
                 {isNewLead && ' - Not Imported Yet'}
               </p>
             </div>

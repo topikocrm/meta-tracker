@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
       },
       { 
         id: process.env.GOOGLE_SHEET_ID_3 || '1hhkIv4SP_CmP9KRusCd3oaDF9dmhIWwCGZx98wCXTM0',
-        name: 'Services Leads',
+        name: 'Generic Campaign-1',
         source: 'sheet_3_services'
       }
     ]

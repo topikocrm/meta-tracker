@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Users, ShoppingBag, Wrench, TrendingUp, Clock, CheckCircle, XCircle, AlertCircle, ArrowRight, RefreshCw, Loader, Calendar } from 'lucide-react'
+import { Users, ShoppingBag, Wrench, Globe, TrendingUp, Clock, CheckCircle, XCircle, AlertCircle, ArrowRight, RefreshCw, Loader, Calendar } from 'lucide-react'
 import { calculateLeadStats, logLeadDataIssues } from '@/lib/lead-utils'
 
 interface DashboardStats {
@@ -60,6 +60,24 @@ interface DashboardStats {
     // Legacy field for compatibility
     interested?: number
   }
+  telugu: {
+    total: number
+    // Pipeline stages
+    new: number
+    contacted: number
+    qualified: number
+    demo: number
+    trial: number
+    won: number
+    lost: number
+    // Lead quality
+    hot: number
+    warm: number
+    cool: number
+    cold: number
+    // Legacy field for compatibility
+    interested?: number
+  }
 }
 
 type DateFilter = 'today' | 'last7days' | 'last30days' | 'all'
@@ -69,16 +87,18 @@ export default function LeadsDashboardPage() {
   const [stats, setStats] = useState<DashboardStats>({
     food: { total: 0, new: 0, contacted: 0, qualified: 0, demo: 0, trial: 0, won: 0, lost: 0, hot: 0, warm: 0, cool: 0, cold: 0 },
     boutique: { total: 0, new: 0, contacted: 0, qualified: 0, demo: 0, trial: 0, won: 0, lost: 0, hot: 0, warm: 0, cool: 0, cold: 0 },
-    services: { total: 0, new: 0, contacted: 0, qualified: 0, demo: 0, trial: 0, won: 0, lost: 0, hot: 0, warm: 0, cool: 0, cold: 0 }
+    services: { total: 0, new: 0, contacted: 0, qualified: 0, demo: 0, trial: 0, won: 0, lost: 0, hot: 0, warm: 0, cool: 0, cold: 0 },
+    telugu: { total: 0, new: 0, contacted: 0, qualified: 0, demo: 0, trial: 0, won: 0, lost: 0, hot: 0, warm: 0, cool: 0, cold: 0 }
   })
   const [isLoading, setIsLoading] = useState(true)
-  const [newLeadsCount, setNewLeadsCount] = useState({ food: 0, boutique: 0, services: 0 })
+  const [newLeadsCount, setNewLeadsCount] = useState({ food: 0, boutique: 0, services: 0, telugu: 0 })
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
   const [dateFilter, setDateFilter] = useState<DateFilter>('today')
   const [unfilteredStats, setUnfilteredStats] = useState<DashboardStats>({
     food: { total: 0, new: 0, contacted: 0, qualified: 0, demo: 0, trial: 0, won: 0, lost: 0, hot: 0, warm: 0, cool: 0, cold: 0 },
     boutique: { total: 0, new: 0, contacted: 0, qualified: 0, demo: 0, trial: 0, won: 0, lost: 0, hot: 0, warm: 0, cool: 0, cold: 0 },
-    services: { total: 0, new: 0, contacted: 0, qualified: 0, demo: 0, trial: 0, won: 0, lost: 0, hot: 0, warm: 0, cool: 0, cold: 0 }
+    services: { total: 0, new: 0, contacted: 0, qualified: 0, demo: 0, trial: 0, won: 0, lost: 0, hot: 0, warm: 0, cool: 0, cold: 0 },
+    telugu: { total: 0, new: 0, contacted: 0, qualified: 0, demo: 0, trial: 0, won: 0, lost: 0, hot: 0, warm: 0, cool: 0, cold: 0 }
   })
 
   useEffect(() => {
@@ -109,21 +129,25 @@ export default function LeadsDashboardPage() {
         const foodLeads = leads.filter((l: any) => l.sheet_source === 'sheet_1_food')
         const boutiqueLeads = leads.filter((l: any) => l.sheet_source === 'sheet_2_boutique')
         const servicesLeads = leads.filter((l: any) => l.sheet_source === 'sheet_3_services')
+        const teluguLeads = leads.filter((l: any) => l.sheet_source === 'sheet_4_telugu')
         
         // Calculate unfiltered stats for debugging
         const unfilteredFoodStats = calculateStats(foodLeads, false)
         const unfilteredBoutiqueStats = calculateStats(boutiqueLeads, false)
         const unfilteredServicesStats = calculateStats(servicesLeads, false)
+        const unfilteredTeluguStats = calculateStats(teluguLeads, false)
         setUnfilteredStats({
           food: unfilteredFoodStats,
           boutique: unfilteredBoutiqueStats,
-          services: unfilteredServicesStats
+          services: unfilteredServicesStats,
+          telugu: unfilteredTeluguStats
         })
         
         // Calculate filtered stats
         const foodStats = calculateStats(foodLeads, true)
         const boutiqueStats = calculateStats(boutiqueLeads, true)
         const servicesStats = calculateStats(servicesLeads, true)
+        const teluguStats = calculateStats(teluguLeads, true)
         
         console.log('[Main Dashboard] Stats calculated:', {
           dateFilter,
@@ -138,7 +162,8 @@ export default function LeadsDashboardPage() {
         setStats({
           food: foodStats,
           boutique: boutiqueStats,
-          services: servicesStats
+          services: servicesStats,
+          telugu: teluguStats
         })
       }
     } catch (error) {
@@ -157,11 +182,13 @@ export default function LeadsDashboardPage() {
         const foodSheet = data.sheets?.find((s: any) => s.source === 'sheet_1_food')
         const boutiqueSheet = data.sheets?.find((s: any) => s.source === 'sheet_2_boutique')
         const servicesSheet = data.sheets?.find((s: any) => s.source === 'sheet_3_services')
+        const teluguSheet = data.sheets?.find((s: any) => s.source === 'sheet_4_telugu')
         
         setNewLeadsCount({
           food: foodSheet?.newCount || 0,
           boutique: boutiqueSheet?.newCount || 0,
-          services: servicesSheet?.newCount || 0
+          services: servicesSheet?.newCount || 0,
+          telugu: teluguSheet?.newCount || 0
         })
       }
     } catch (error) {
@@ -353,7 +380,7 @@ export default function LeadsDashboardPage() {
         </div>
 
         {/* New Leads Alert */}
-        {(newLeadsCount.food > 0 || newLeadsCount.boutique > 0 || newLeadsCount.services > 0) && (
+        {(newLeadsCount.food > 0 || newLeadsCount.boutique > 0 || newLeadsCount.services > 0 || newLeadsCount.telugu > 0) && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <AlertCircle className="h-5 w-5 text-yellow-600" />
@@ -361,10 +388,12 @@ export default function LeadsDashboardPage() {
                 <p className="font-medium text-yellow-900">New Leads Available!</p>
                 <p className="text-sm text-yellow-700">
                   {newLeadsCount.food > 0 && `${newLeadsCount.food} new Food leads`}
-                  {newLeadsCount.food > 0 && (newLeadsCount.boutique > 0 || newLeadsCount.services > 0) && ', '}
+                  {newLeadsCount.food > 0 && (newLeadsCount.boutique > 0 || newLeadsCount.services > 0 || newLeadsCount.telugu > 0) && ', '}
                   {newLeadsCount.boutique > 0 && `${newLeadsCount.boutique} new Boutique leads`}
-                  {newLeadsCount.boutique > 0 && newLeadsCount.services > 0 && ', '}
-                  {newLeadsCount.services > 0 && `${newLeadsCount.services} new Services leads`}
+                  {newLeadsCount.boutique > 0 && (newLeadsCount.services > 0 || newLeadsCount.telugu > 0) && ', '}
+                  {newLeadsCount.services > 0 && `${newLeadsCount.services} new Generic Campaign-1 leads`}
+                  {newLeadsCount.services > 0 && newLeadsCount.telugu > 0 && ', '}
+                  {newLeadsCount.telugu > 0 && `${newLeadsCount.telugu} new Telugu 4999 leads`}
                   {' '}ready to be imported
                 </p>
               </div>
@@ -377,7 +406,7 @@ export default function LeadsDashboardPage() {
             <Loader className="h-8 w-8 animate-spin text-blue-600" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
             {/* Food Leads Card */}
             <div 
               className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition-all hover:scale-[1.02] hover:shadow-xl"
@@ -546,8 +575,8 @@ export default function LeadsDashboardPage() {
                       <Wrench className="h-8 w-8 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-white">Services Leads</h2>
-                      <p className="text-indigo-100">Professional & Business Services</p>
+                      <h2 className="text-2xl font-bold text-white">Generic Campaign-1</h2>
+                      <p className="text-indigo-100">Marketing Campaign Leads</p>
                     </div>
                   </div>
                   <ArrowRight className="h-6 w-6 text-white/70" />
@@ -604,6 +633,84 @@ export default function LeadsDashboardPage() {
                     <span className="font-medium text-gray-900">
                       {stats.services.total > 0 
                         ? `${Math.round((stats.services.won / stats.services.total) * 100)}%`
+                        : '0%'
+                      }
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Telugu 4999 Leads Card */}
+            <div 
+              className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition-all hover:scale-[1.02] hover:shadow-xl"
+              onClick={() => router.push('/leads-dashboard/telugu')}
+            >
+              <div className="bg-gradient-to-r from-teal-500 to-teal-600 p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/20 rounded-lg backdrop-blur">
+                      <Globe className="h-8 w-8 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">Telugu 4999</h2>
+                      <p className="text-teal-100">Telugu 4999 Business Leads</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="h-6 w-6 text-white/70" />
+                </div>
+              </div>
+              
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <p className="text-3xl font-bold text-gray-900">{stats.telugu.total}</p>
+                    <p className="text-sm text-gray-600">
+                      {dateFilter === 'all' ? 'Total' : (
+                        dateFilter === 'today' ? "Today's" : 
+                        dateFilter === 'last7days' ? 'Last 7 Days' : 
+                        'Last 30 Days'
+                      )} Leads
+                    </p>
+                  </div>
+                  {newLeadsCount.telugu > 0 && (
+                    <div className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+                      +{newLeadsCount.telugu} New
+                    </div>
+                  )}
+                </div>
+                
+                <div className="space-y-3">
+                  {/* Pipeline Stages */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Pipeline Stages</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      <StatCard label="🆕 New" value={stats.telugu.new} color="text-blue-600" />
+                      <StatCard label="📞 Contacted" value={stats.telugu.contacted} color="text-indigo-600" />
+                      <StatCard label="✅ Qualified" value={stats.telugu.qualified} color="text-purple-600" />
+                      <StatCard label="🎯 Demo" value={stats.telugu.demo} color="text-pink-600" />
+                      <StatCard label="🚀 Trial" value={stats.telugu.trial} color="text-orange-600" />
+                      <StatCard label="🏆 Won" value={stats.telugu.won} color="text-emerald-600" />
+                    </div>
+                  </div>
+                  {/* Lead Quality */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Lead Quality</p>
+                    <div className="grid grid-cols-4 gap-2">
+                      <StatCard label="🔥 Hot" value={stats.telugu.hot} color="text-red-600" />
+                      <StatCard label="☀️ Warm" value={stats.telugu.warm} color="text-orange-500" />
+                      <StatCard label="❄️ Cool" value={stats.telugu.cool} color="text-blue-500" />
+                      <StatCard label="🧊 Cold" value={stats.telugu.cold} color="text-gray-500" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Conversion Rate</span>
+                    <span className="font-medium text-gray-900">
+                      {stats.telugu.total > 0 
+                        ? `${Math.round((stats.telugu.won / stats.telugu.total) * 100)}%`
                         : '0%'
                       }
                     </span>
