@@ -50,6 +50,11 @@ export async function POST(request: NextRequest) {
         id: process.env.GOOGLE_SHEET_ID_3 || '1hhkIv4SP_CmP9KRusCd3oaDF9dmhIWwCGZx98wCXTM0',
         name: 'Generic Campaign-1',
         source: 'sheet_3_services'
+      },
+      { 
+        id: process.env.GOOGLE_SHEET_ID_4 || '1OoisW-z1B_Z-lhw5XGKXeDOAs66Cl7t1BMIh6y1cz18',
+        name: 'Telugu 4999',
+        source: 'sheet_4_telugu'
       }
     ]
 
