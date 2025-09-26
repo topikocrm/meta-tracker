@@ -6,7 +6,7 @@ import { X, UserPlus, Phone, Mail, MapPin, Building } from 'lucide-react'
 interface AddLeadModalProps {
   isOpen: boolean
   onClose: () => void
-  sheetSource: 'sheet_1_food' | 'sheet_2_boutique' | 'sheet_3_services'
+  sheetSource: 'sheet_1_food' | 'sheet_2_boutique' | 'sheet_3_services' | 'sheet_4_telugu'
   onLeadAdded: () => void
 }
 
