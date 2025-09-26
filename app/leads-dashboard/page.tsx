@@ -406,7 +406,7 @@ export default function LeadsDashboardPage() {
             <Loader className="h-8 w-8 animate-spin text-blue-600" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Food Leads Card */}
             <div 
               className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition-all hover:scale-[1.02] hover:shadow-xl"
